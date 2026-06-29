@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MARA Steuer-Radar 2.0 | KW 27 · 2026</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f0f0; color: #1a1a2e; min-height: 100vh; }
+
+/* ── HEADER ── */
+.header {
+  background: linear-gradient(135deg, #6B1A1A 0%, #A83232 100%);
+  padding: 22px 40px; color: white;
+  display: flex; align-items: center; justify-content: space-between;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+.header-left h1 { font-size: 1.5rem; font-weight: 700; }
+.header-left .subtitle { font-size: 0.85rem; opacity: 0.85; margin-top: 3px; }
+.header-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.h-badge { background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3); border-radius: 16px; padding: 4px 13px; font-size: 0.76rem; }
+.h-kw { background: rgba(255,255,255,0.28); border-radius: 8px; padding: 4px 12px; font-size: 0.82rem; font-weight: 700; }
+
+/* ── TABS ── */
+.tab-bar {
+  background: white; border-bottom: 2px solid #E8D5D5;
+  display: flex; padding: 0 40px; gap: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.tab-btn {
+  padding: 14px 22px; border: none; background: none;
+  font-size: 0.9rem; font-weight: 600; cursor: pointer;
+  color: #888; border-bottom: 3px solid transparent;
+  margin-bottom: -2px; transition: all 0.2s; white-space: nowrap;
+}
+.tab-btn.active { color: #6B1A1A; border-bottom-color: #6B1A1A; }
+.tab-btn:hover:not(.active) { color: #A83232; }
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+.container { max-width: 1150px; margin: 0 auto; padding: 28px 20px; }
+
+/* ── STATS ── */
+.stats-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+.stat-card { background: white; border-radius: 10px; padding: 13px 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); flex: 1; min-width: 120px; border-top: 3px solid #ccc; text-align: center; }
+.stat-card.d { border-top-color: #C0392B; }
+.stat-card.r { border-top-color: #D35400; }
+.stat-card.i { border-top-color: #2980B9; }
+.stat-num { font-size: 1.7rem; font-weight: 800; line-height: 1; margin-bottom: 3px; }
+.stat-card.d .stat-num { color: #C0392B; }
+.stat-card.r .stat-num { color: #D35400; }
+.stat-card.i .stat-num { color: #2980B9; }
+.stat-txt { font-size: 0.74rem; color: #888; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
+
+/* ── FILTER ── */
+.filter-bar { background: white; border-radius: 12px; padding: 20px 22px; margin-bottom: 22px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); display: flex; flex-direction: column; gap: 14px; }
+.filter-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.filter-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #888; min-width: 88px; }
+.filter-btn { padding: 5px 13px; border-radius: 18px; border: 2px solid #E8D5D5; background: white; font-size: 0.8rem; cursor: pointer; transition: all 0.18s; color: #666; }
+.filter-btn.active { background: #6B1A1A; border-color: #6B1A1A; color: white; }
+.filter-btn:hover:not(.active) { border-color: #A83232; color: #6B1A1A; }
+.search-box { width: 100%; padding: 9px 15px; border: 2px solid #E8D5D5; border-radius: 8px; font-size: 0.88rem; font-family: inherit; outline: none; transition: border-color 0.2s; }
+.search-box:focus { border-color: #A83232; box-shadow: 0 0 0 3px rgba(168,50,50,0.1); }
+
+/* ── RESULT COUNT ── */
+.result-count { font-size: 0.83rem; color: #888; margin-bottom: 13px; }
+.result-count strong { color: #6B1A1A; }
+
+/* ── GRID ── */
+.results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+
+/* ── CARD ── */
+.item-card { background: white; border-radius: 12px; padding: 18px 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.07); border-left: 4px solid #A83232; transition: transform 0.15s, box-shadow 0.15s; display: flex; flex-direction: column; gap: 9px; }
+.item-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.11); }
+.item-card.prio-dringend { border-left-color: #C0392B; }
+.item-card.prio-relevant { border-left-color: #E67E22; }
+.item-card.prio-info { border-left-color: #2980B9; }
+.item-card.hidden { display: none; }
+.card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.card-name { font-size: 0.95rem; font-weight: 700; color: #6B1A1A; flex: 1; line-height: 1.35; text-decoration: none; transition: color 0.15s; }
+a.card-name:hover { color: #A83232; text-decoration: underline; }
+.prio-badge { font-size: 0.68rem; padding: 3px 9px; border-radius: 12px; font-weight: 700; white-space: nowrap; flex-shrink: 0; }
+.prio-badge.dringend { background: #FDECEA; color: #C0392B; }
+.prio-badge.relevant { background: #FEF0E0; color: #D35400; }
+.prio-badge.info { background: #EBF5FB; color: #2471A3; }
+.card-desc { font-size: 0.81rem; color: #555; line-height: 1.56; }
+.card-desc strong { color: #6B1A1A; }
+.card-action { background: #FDF0F0; border-left: 3px solid #C0392B; border-radius: 0 6px 6px 0; padding: 7px 11px; font-size: 0.78rem; color: #7D1C1C; line-height: 1.44; }
+.card-action::before { content: "⚡ "; }
+.card-footer { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 3px; }
+.tag { font-size: 0.7rem; border-radius: 6px; padding: 3px 8px; border: 1px solid transparent; }
+.tag.kat { background: #F9F0F0; border-color: #E8D5D5; color: #6B1A1A; }
+.tag.frist { background: #FFF8E8; border-color: #F0D080; color: #7B5900; font-weight: 700; }
+.tag.mandant { background: #F0F7FF; border-color: #BFD7EE; color: #1F4E79; }
+.tag.ebene { font-size: 0.66rem; background: #F5F5F5; border-color: #D5D5D5; color: #555; font-weight: 700; text-transform: uppercase; }
+.update-badge { font-size: 0.66rem; background: #FFF3CD; border: 1px solid #FBBF24; color: #7C5500; border-radius: 10px; padding: 2px 7px; font-weight: 700; }
+.link-btn { display: inline-flex; align-items: center; gap: 4px; margin-left: auto; font-size: 0.73rem; color: white; background: #6B1A1A; border-radius: 6px; padding: 4px 11px; text-decoration: none; transition: background 0.15s; white-space: nowrap; }
+.link-btn:hover { background: #A83232; }
+
+/* ══════════════════════════════════════════
+   MANDANTEN-EMAIL-MODUL (Tab 2)
+══════════════════════════════════════════ */
+.module-card { background: white; border-radius: 14px; padding: 28px; margin-bottom: 22px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+.module-card h2 { font-size: 1.1rem; font-weight: 700; color: #6B1A1A; margin-bottom: 6px; }
+.module-card .sub { font-size: 0.84rem; color: #777; margin-bottom: 20px; }
+
+/* Schritt-Badges */
+.step-row { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 22px; }
+.step-num { background: #6B1A1A; color: white; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; flex-shrink: 0; margin-top: 2px; }
+.step-body { flex: 1; }
+.step-body h3 { font-size: 0.95rem; font-weight: 700; color: #333; margin-bottom: 6px; }
+.step-body p { font-size: 0.83rem; color: #666; line-height: 1.55; margin-bottom: 8px; }
+
+/* CSV-Vorlage Download */
+.dl-btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: #6B1A1A; color: white; border: none; border-radius: 8px;
+  padding: 9px 18px; font-size: 0.85rem; font-weight: 600; cursor: pointer;
+  transition: background 0.15s; text-decoration: none;
+}
+.dl-btn:hover { background: #A83232; }
+.dl-btn.secondary { background: white; color: #6B1A1A; border: 2px solid #6B1A1A; }
+.dl-btn.secondary:hover { background: #FDF0F0; }
+
+/* Upload-Bereich */
+.upload-zone {
+  border: 2px dashed #D9A0A0; border-radius: 10px; padding: 28px;
+  text-align: center; cursor: pointer; transition: all 0.2s; background: #FDF8F8;
+  position: relative;
+}
+.upload-zone:hover, .upload-zone.dragover { border-color: #6B1A1A; background: #FDF0F0; }
+.upload-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.upload-zone .uz-icon { font-size: 2rem; margin-bottom: 8px; }
+.upload-zone .uz-text { font-size: 0.88rem; color: #888; }
+.upload-zone .uz-text strong { color: #6B1A1A; }
+
+/* Mandanten-Tabelle */
+.m-table-wrap { overflow-x: auto; margin-top: 12px; }
+table.m-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+.m-table th { background: #6B1A1A; color: white; padding: 9px 12px; text-align: left; font-weight: 600; }
+.m-table tr:nth-child(even) { background: #FDF8F8; }
+.m-table td { padding: 8px 12px; border-bottom: 1px solid #F0E0E0; }
+.m-table .typ-chip { display: inline-block; background: #F0F7FF; border: 1px solid #BFD7EE; color: #1F4E79; border-radius: 10px; padding: 2px 9px; font-size: 0.72rem; font-weight: 600; }
+.m-table .match-count { font-weight: 700; color: #6B1A1A; }
+.m-table .match-none { color: #AAA; font-style: italic; }
+
+/* Generate-Button */
+.gen-btn {
+  width: 100%; padding: 14px; background: linear-gradient(135deg, #6B1A1A, #A83232);
+  color: white; border: none; border-radius: 10px; font-size: 1rem;
+  font-weight: 700; cursor: pointer; transition: all 0.2s; margin-top: 14px;
+  letter-spacing: 0.3px;
+}
+.gen-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(107,26,26,0.35); }
+.gen-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+/* Email-Vorschau */
+.email-list { display: flex; flex-direction: column; gap: 14px; margin-top: 4px; }
+.email-card { border: 1px solid #E8D5D5; border-radius: 10px; overflow: hidden; }
+.email-header {
+  background: #F9F0F0; padding: 12px 16px; display: flex;
+  align-items: center; justify-content: space-between; gap: 12px;
+  cursor: pointer; user-select: none;
+}
+.email-header:hover { background: #F0E0E0; }
+.email-header .eh-left { display: flex; flex-direction: column; gap: 2px; }
+.email-name { font-weight: 700; font-size: 0.9rem; color: #6B1A1A; }
+.email-meta { font-size: 0.76rem; color: #888; }
+.email-header .eh-right { display: flex; gap: 8px; align-items: center; }
+.count-badge { background: #6B1A1A; color: white; border-radius: 12px; padding: 2px 9px; font-size: 0.72rem; font-weight: 700; }
+.toggle-icon { font-size: 0.8rem; color: #999; transition: transform 0.2s; }
+.email-card.open .toggle-icon { transform: rotate(180deg); }
+.email-body { display: none; padding: 18px; border-top: 1px solid #F0E0E0; }
+.email-card.open .email-body { display: block; }
+.email-preview {
+  background: #FAFAFA; border: 1px solid #E8E8E8; border-radius: 8px;
+  padding: 16px; font-size: 0.82rem; line-height: 1.7; color: #333;
+  white-space: pre-wrap; font-family: 'Segoe UI', Arial, sans-serif;
+  max-height: 380px; overflow-y: auto; margin-bottom: 12px;
+}
+.action-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.copy-btn {
+  padding: 8px 16px; border-radius: 7px; border: 2px solid #6B1A1A;
+  background: white; color: #6B1A1A; font-size: 0.82rem; font-weight: 600;
+  cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 5px;
+}
+.copy-btn:hover { background: #FDF0F0; }
+.copy-btn.copied { background: #EAFAF1; border-color: #27AE60; color: #1E8449; }
+.mailto-btn {
+  padding: 8px 16px; border-radius: 7px; border: none;
+  background: #6B1A1A; color: white; font-size: 0.82rem; font-weight: 600;
+  cursor: pointer; transition: background 0.15s; display: flex; align-items: center; gap: 5px;
+  text-decoration: none;
+}
+.mailto-btn:hover { background: #A83232; }
+
+/* DSGVO-Box */
+.dsgvo-box {
+  background: #EBF5FB; border: 1px solid #AED6F1; border-radius: 10px;
+  padding: 16px 20px; font-size: 0.82rem; color: #1A5276; line-height: 1.6;
+}
+.dsgvo-box strong { display: block; margin-bottom: 6px; font-size: 0.88rem; }
+
+/* Status-Messages */
+.status-msg { padding: 10px 14px; border-radius: 8px; font-size: 0.84rem; margin-top: 10px; }
+.status-msg.success { background: #EAFAF1; color: #1E8449; border: 1px solid #A9DFBF; }
+.status-msg.error { background: #FDECEA; color: #C0392B; border: 1px solid #F1948A; }
+.status-msg.info { background: #EBF5FB; color: #1A5276; border: 1px solid #AED6F1; }
+
+/* Disclaimer */
+.disclaimer { background: #FFF8E8; border: 1px solid #F0D080; border-radius: 10px; padding: 13px 17px; margin-top: 26px; font-size: 0.78rem; color: #7B5900; line-height: 1.6; }
+
+@media (max-width: 620px) {
+  .header { flex-direction: column; gap: 12px; padding: 18px; }
+  .tab-bar { padding: 0 16px; }
+  .results-grid { grid-template-columns: 1fr; }
+  .stats-row { gap: 8px; }
+}
+
+/* ══════════════════════════════════════════
+   FRISTEN-AMPEL
+══════════════════════════════════════════ */
+.ampel-badge { display:inline-flex; align-items:center; gap:3px; border-radius:10px; padding:2px 8px; font-size:0.66rem; font-weight:700; white-space:nowrap; }
+.ampel-kritisch  { background:#FDECEA; color:#C0392B; border:1px solid #F1948A; }
+.ampel-dringend2 { background:#FBEEE4; color:#A04000; border:1px solid #E0A070; }
+.ampel-bald      { background:#FFF8E8; color:#7B5900; border:1px solid #F0D080; }
+.ampel-ok        { background:#EAFAF1; color:#1E8449; border:1px solid #A9DFBF; }
+.ampel-vergangen { background:#F4F4F4; color:#888; border:1px solid #CCC; }
+
+/* FRISTEN-PANEL */
+.fristen-panel { background:white; border-radius:12px; margin-bottom:22px; box-shadow:0 2px 12px rgba(0,0,0,0.07); overflow:hidden; }
+.fristen-header { background:linear-gradient(135deg,#6B1A1A,#A83232); color:white; padding:14px 20px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; user-select:none; }
+.fristen-header h3 { font-size:0.95rem; font-weight:700; margin:0; }
+.fristen-header .fh-right { display:flex; gap:8px; align-items:center; font-size:0.8rem; opacity:0.9; }
+.fristen-body { display:none; padding:16px 20px; }
+.fristen-body.open { display:block; }
+.frist-row { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid #F5EDED; flex-wrap:wrap; }
+.frist-row:last-child { border-bottom:none; }
+.frist-name { font-size:0.84rem; font-weight:600; color:#333; flex:1; min-width:180px; }
+.frist-date { font-size:0.78rem; color:#888; min-width:90px; }
+.frist-mandanten { display:flex; gap:4px; flex-wrap:wrap; }
+
+/* MANDANTEN-SCORING */
+.scoring-panel { background:white; border-radius:12px; margin-top:20px; box-shadow:0 2px 12px rgba(0,0,0,0.07); overflow:hidden; display:none; }
+.scoring-header { background:linear-gradient(135deg,#6B1A1A,#A83232); color:white; padding:14px 20px; }
+.scoring-header h3 { font-size:0.95rem; font-weight:700; margin:0 0 3px 0; }
+.scoring-header .sh-sub { font-size:0.78rem; opacity:0.85; }
+.scoring-list { padding:16px 20px; display:flex; flex-direction:column; gap:10px; }
+.scoring-row { display:flex; align-items:center; gap:12px; padding:10px 14px; border-radius:8px; background:#FDF8F8; border-left:4px solid #ccc; }
+.scoring-row.rank-1 { background:#FDF0E0; border-left-color:#C0392B; }
+.scoring-row.rank-2 { background:#FDF5EC; border-left-color:#E67E22; }
+.scoring-row.rank-3 { background:#FDFBF0; border-left-color:#F0C030; }
+.scoring-rank { font-size:1.2rem; font-weight:900; color:#6B1A1A; min-width:28px; text-align:center; }
+.scoring-info { flex:1; }
+.scoring-name { font-size:0.9rem; font-weight:700; color:#333; }
+.scoring-detail { font-size:0.76rem; color:#888; margin-top:2px; }
+.scoring-score { text-align:right; }
+.scoring-num { font-size:1.3rem; font-weight:800; color:#6B1A1A; line-height:1; }
+.scoring-lbl { font-size:0.65rem; color:#AAA; text-transform:uppercase; font-weight:600; }
+
+/* ══════════════════════════════════════════
+   REDAKTIONSMODUS
+══════════════════════════════════════════ */
+.red-lock { text-align:center; padding:60px 30px; }
+.red-lock .rl-icon { font-size:3rem; margin-bottom:16px; }
+.red-lock h2 { color:#6B1A1A; font-size:1.2rem; margin-bottom:8px; }
+.red-lock p { color:#777; font-size:0.85rem; margin-bottom:24px; line-height:1.6; }
+.red-pw-row { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+.red-pw-input { padding:10px 16px; border:2px solid #E8D5D5; border-radius:8px; font-size:0.9rem; min-width:220px; outline:none; transition:border-color 0.2s; font-family:inherit; }
+.red-pw-input:focus { border-color:#A83232; }
+.red-pw-btn { padding:10px 22px; background:#6B1A1A; color:white; border:none; border-radius:8px; font-size:0.9rem; font-weight:700; cursor:pointer; transition:background 0.15s; }
+.red-pw-btn:hover { background:#A83232; }
+.red-pw-error { color:#C0392B; font-size:0.83rem; margin-top:10px; }
+
+.red-editor { display:none; }
+.red-toolbar { background:white; border-radius:12px; padding:18px 22px; margin-bottom:18px; box-shadow:0 2px 8px rgba(0,0,0,0.07); display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+.red-toolbar h2 { font-size:1.0rem; font-weight:700; color:#6B1A1A; flex:1; min-width:160px; }
+.rt-kw { display:flex; align-items:center; gap:6px; }
+.rt-kw label { font-size:0.72rem; font-weight:700; color:#888; text-transform:uppercase; white-space:nowrap; }
+.rt-kw input { padding:6px 10px; border:2px solid #E8D5D5; border-radius:6px; font-size:0.84rem; width:110px; font-family:inherit; outline:none; }
+.rt-kw input:focus { border-color:#A83232; }
+.red-export-btn { padding:9px 16px; background:linear-gradient(135deg,#6B1A1A,#A83232); color:white; border:none; border-radius:8px; font-size:0.82rem; font-weight:700; cursor:pointer; transition:all 0.15s; white-space:nowrap; }
+.red-export-btn:hover { transform:translateY(-1px); box-shadow:0 4px 14px rgba(107,26,26,0.3); }
+.red-add-btn { padding:9px 16px; background:white; color:#6B1A1A; border:2px solid #6B1A1A; border-radius:8px; font-size:0.82rem; font-weight:700; cursor:pointer; transition:all 0.15s; white-space:nowrap; }
+.red-add-btn:hover { background:#FDF0F0; }
+.red-lock-btn { padding:9px 16px; background:white; color:#C0392B; border:2px solid #C0392B; border-radius:8px; font-size:0.82rem; font-weight:700; cursor:pointer; transition:all 0.15s; white-space:nowrap; }
+.red-lock-btn:hover { background:#FDECEA; }
+
+.red-items { display:flex; flex-direction:column; gap:10px; }
+.red-item-row { background:white; border-radius:10px; padding:14px 18px; box-shadow:0 2px 8px rgba(0,0,0,0.06); display:flex; align-items:center; gap:12px; border-left:4px solid #ccc; }
+.red-item-row.prio-dringend { border-left-color:#C0392B; }
+.red-item-row.prio-relevant { border-left-color:#E67E22; }
+.red-item-row.prio-info { border-left-color:#2980B9; }
+.red-item-info { flex:1; }
+.red-item-name { font-size:0.88rem; font-weight:700; color:#333; margin-bottom:3px; }
+.red-item-meta { font-size:0.74rem; color:#999; }
+.red-item-actions { display:flex; gap:7px; flex-shrink:0; }
+.red-edit-btn { padding:6px 12px; background:#F9F0F0; color:#6B1A1A; border:1px solid #E8D5D5; border-radius:6px; font-size:0.78rem; font-weight:600; cursor:pointer; }
+.red-edit-btn:hover { background:#F0E0E0; }
+.red-del-btn { padding:6px 12px; background:#FDF0F0; color:#C0392B; border:1px solid #F1948A; border-radius:6px; font-size:0.78rem; font-weight:600; cursor:pointer; }
+.red-del-btn:hover { background:#FDECEA; }
+
+.red-limits-box { background:#EBF5FB; border:1px solid #AED6F1; border-radius:10px; padding:18px 22px; margin-top:24px; font-size:0.83rem; color:#1A5276; line-height:1.7; }
+.red-limits-box h4 { margin-bottom:10px; font-size:0.92rem; color:#1A5276; }
+.red-limits-box ul { padding-left:18px; }
+.red-limits-box li { margin-bottom:5px; }
+.red-limits-hint { margin-top:10px; color:#2980B9; font-weight:600; font-size:0.8rem; background:rgba(41,128,185,0.08); border-radius:6px; padding:8px 12px; }
+
+/* MODAL */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:1000; display:none; align-items:center; justify-content:center; padding:20px; }
+.modal-overlay.open { display:flex; }
+.modal-box { background:white; border-radius:14px; width:100%; max-width:680px; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.3); }
+.modal-header { background:linear-gradient(135deg,#6B1A1A,#A83232); color:white; padding:18px 22px; border-radius:14px 14px 0 0; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; }
+.modal-header h3 { font-size:1rem; font-weight:700; margin:0; }
+.modal-close { background:none; border:none; color:white; font-size:1.3rem; cursor:pointer; opacity:0.8; padding:0 4px; line-height:1; }
+.modal-close:hover { opacity:1; }
+.modal-body { padding:22px; display:flex; flex-direction:column; gap:14px; }
+.form-row { display:flex; flex-direction:column; gap:5px; }
+.form-row label { font-size:0.73rem; font-weight:700; color:#6B1A1A; text-transform:uppercase; letter-spacing:0.4px; }
+.form-input, .form-select, .form-textarea { padding:9px 12px; border:2px solid #E8D5D5; border-radius:7px; font-size:0.85rem; font-family:inherit; outline:none; transition:border-color 0.2s; width:100%; box-sizing:border-box; }
+.form-input:focus, .form-select:focus, .form-textarea:focus { border-color:#A83232; box-shadow:0 0 0 3px rgba(168,50,50,0.1); }
+.form-textarea { min-height:80px; resize:vertical; }
+.form-row-2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.form-chk-group { display:flex; flex-wrap:wrap; gap:8px; }
+.form-chk-lbl { display:inline-flex; align-items:center; gap:5px; font-size:0.82rem; cursor:pointer; padding:5px 12px; border:2px solid #E8D5D5; border-radius:20px; transition:all 0.15s; background:white; color:#555; }
+.form-chk-lbl.checked { background:#6B1A1A; color:white; border-color:#6B1A1A; }
+.form-chk-lbl input { display:none; }
+.modal-footer { padding:16px 22px; border-top:1px solid #F0E8E8; display:flex; gap:10px; justify-content:flex-end; background:white; position:sticky; bottom:0; border-radius:0 0 14px 14px; }
+.modal-save-btn { padding:10px 22px; background:#6B1A1A; color:white; border:none; border-radius:8px; font-size:0.88rem; font-weight:700; cursor:pointer; }
+.modal-save-btn:hover { background:#A83232; }
+.modal-cancel-btn { padding:10px 22px; background:white; color:#6B1A1A; border:2px solid #6B1A1A; border-radius:8px; font-size:0.88rem; font-weight:600; cursor:pointer; }
+.modal-cancel-btn:hover { background:#FDF0F0; }
+
+</style>
+</head>
+<body>
+
+<!-- ══ HEADER ══ -->
+<div class="header">
+  <div class="header-left">
+    <h1>🎯 MARA Steuer-Radar 2.0</h1>
+    <div class="subtitle">Radar · Mandanten-Selektion · Personalisierter Email-Versand</div>
+  </div>
+  <div class="header-right">
+    <div class="h-kw" id="headerKW">KW 27 · Juni/Juli 2026</div>
+    <div class="h-badge" style="background:rgba(39,174,96,0.35);border-color:rgba(39,174,96,0.6);font-weight:700">🕐 Stand: 28.06.2026</div>
+    <div class="h-badge">MARA Radar System</div>
+    <div class="h-badge">✉️ Email-Modul aktiv</div>
+  </div>
+</div>
+
+<!-- ══ TABS ══ -->
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('radar', this)">📊 Steuer-Radar</button>
+  <button class="tab-btn" onclick="switchTab('email', this)">📧 Mandanten & Email-Versand</button>
+  <button class="tab-btn" onclick="switchTab('redaktion', this)">✏️ Redaktionsmodus</button>
+</div>
+
+<!-- ══════════════════════════════════
+     TAB 1: RADAR
+══════════════════════════════════ -->
+<div id="tab-radar" class="tab-panel active">
+<div class="container">
+
+  <div class="stats-row">
+    <div class="stat-card d"><div class="stat-num" id="cntD">0</div><div class="stat-txt">🔴 Dringend</div></div>
+    <div class="stat-card r"><div class="stat-num" id="cntR">0</div><div class="stat-txt">🟡 Relevant</div></div>
+    <div class="stat-card i"><div class="stat-num" id="cntI">0</div><div class="stat-txt">🔵 Info</div></div>
+  </div>
+
+  <div class="filter-bar">
+    <div class="filter-row">
+      <span class="filter-label">Priorität</span>
+      <button class="filter-btn active" data-filter="prio" data-val="alle" onclick="setFilter('prio','alle',this)">Alle</button>
+      <button class="filter-btn" data-filter="prio" data-val="dringend" onclick="setFilter('prio','dringend',this)">🔴 Dringend</button>
+      <button class="filter-btn" data-filter="prio" data-val="relevant" onclick="setFilter('prio','relevant',this)">🟡 Relevant</button>
+      <button class="filter-btn" data-filter="prio" data-val="info" onclick="setFilter('prio','info',this)">🔵 Info</button>
+    </div>
+    <div class="filter-row">
+      <span class="filter-label">Mandant</span>
+      <button class="filter-btn active" data-filter="mandant" data-val="alle" onclick="setFilter('mandant','alle',this)">Alle</button>
+      <button class="filter-btn" data-filter="mandant" data-val="Freiberufler" onclick="setFilter('mandant','Freiberufler',this)">Freiberufler</button>
+      <button class="filter-btn" data-filter="mandant" data-val="GmbH" onclick="setFilter('mandant','GmbH',this)">GmbH</button>
+      <button class="filter-btn" data-filter="mandant" data-val="GbR" onclick="setFilter('mandant','GbR',this)">GbR</button>
+      <button class="filter-btn" data-filter="mandant" data-val="Arbeitnehmer" onclick="setFilter('mandant','Arbeitnehmer',this)">Arbeitnehmer</button>
+      <button class="filter-btn" data-filter="mandant" data-val="Immobilien" onclick="setFilter('mandant','Immobilien',this)">Immobilien</button>
+      <button class="filter-btn" data-filter="mandant" data-val="Gemeinnützig" onclick="setFilter('mandant','Gemeinnützig',this)">Gemeinnützig</button>
+    </div>
+    <div class="filter-row">
+      <span class="filter-label">Kategorie</span>
+      <button class="filter-btn active" data-filter="kat" data-val="alle" onclick="setFilter('kat','alle',this)">Alle</button>
+      <button class="filter-btn" data-filter="kat" data-val="Frist" onclick="setFilter('kat','Frist',this)">📅 Fristen</button>
+      <button class="filter-btn" data-filter="kat" data-val="BFH" onclick="setFilter('kat','BFH',this)">⚖️ BFH-Urteile</button>
+      <button class="filter-btn" data-filter="kat" data-val="BMF" onclick="setFilter('kat','BMF',this)">📋 BMF-Schreiben</button>
+      <button class="filter-btn" data-filter="kat" data-val="Änderung" onclick="setFilter('kat','Änderung',this)">📈 Steueränderungen</button>
+      <button class="filter-btn" data-filter="kat" data-val="Digital" onclick="setFilter('kat','Digital',this)">💻 Digital</button>
+    </div>
+    <input type="text" class="search-box" placeholder="🔍  Suche nach Stichwort, Norm, Mandantentyp…" oninput="doSearch(this.value)">
+  </div>
+
+  <div class="result-count" id="resultCount"></div>
+  <div class="results-grid" id="cardsGrid"></div>
+  <div style="text-align:center;padding:40px;color:#aaa;display:none" id="noResults">Keine Einträge für diese Filterauswahl.</div>
+
+
+  <!-- FRISTEN-AMPEL ÜBERSICHT -->
+  <div class="fristen-panel" id="fristenPanel">
+    <div class="fristen-header" onclick="toggleFristenPanel()">
+      <h3>📅 Fristen-Ampel &amp; Übersicht</h3>
+      <div class="fh-right">
+        <span id="fristenSummary">wird geladen…</span>
+        <span id="fristenToggleIcon">▼</span>
+      </div>
+    </div>
+    <div class="fristen-body" id="fristenBody"></div>
+  </div>
+
+  <div class="disclaimer">⚠️ <strong>Hinweis:</strong> Diese Zusammenfassung wurde KI-gestützt erstellt und ersetzt keine steuerrechtliche Beratung. Alle Informationen sind durch den Steuerberater zu prüfen. Keine Gewähr für Vollständigkeit und Richtigkeit. Stand: 28.06.2026 · MARA Radar System</div>
+</div>
+</div>
+
+<!-- ══════════════════════════════════
+     TAB 2: MANDANTEN & EMAIL
+══════════════════════════════════ -->
+<div id="tab-email" class="tab-panel">
+<div class="container">
+
+  <!-- DSGVO-Hinweis oben -->
+  <div class="dsgvo-box" style="margin-bottom:22px">
+    <strong>🔒 Datenschutz & DSGVO: Alle Daten bleiben auf Ihrem Computer</strong>
+    Die CSV-Datei wird ausschließlich lokal in Ihrem Browser verarbeitet. Es werden <strong>keine Mandantendaten an externe Server übertragen</strong>. Das System funktioniert vollständig offline. Als Steuerberater bleiben Sie Datenschutzverantwortlicher — MARA ist das Verarbeitungswerkzeug. Rechtsgrundlage: Art. 6 Abs. 1 lit. b) DSGVO (Vertragserfüllung). Ein AVV-Mustervertrag ist auf Anfrage verfügbar.
+  </div>
+
+  <!-- SCHRITT 1: Vorlage -->
+  <div class="module-card">
+    <h2>📥 Schritt 1 — CSV-Vorlage herunterladen & befüllen</h2>
+    <div class="sub">Laden Sie die Vorlage herunter, öffnen Sie sie in Excel oder LibreOffice und tragen Sie Ihre Mandanten ein.</div>
+
+    <div class="step-row">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <h3>Vorlage herunterladen</h3>
+        <p>Die Vorlage enthält drei Spalten: <strong>Name</strong> (Mandantenname), <strong>Email</strong> (Email-Adresse), <strong>Typ</strong> (Mandantentyp).</p>
+        <button class="dl-btn" onclick="downloadTemplate()">⬇️ CSV-Vorlage herunterladen (Beispiel)</button>
+      </div>
+    </div>
+
+    <div class="step-row">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <h3>Erlaubte Mandantentypen</h3>
+        <p>Tragen Sie in der Spalte <strong>Typ</strong> exakt einen der folgenden Werte ein — Groß-/Kleinschreibung beachten:</p>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">
+          <span class="tag mandant" style="font-size:0.82rem;padding:5px 12px">Freiberufler</span>
+          <span class="tag mandant" style="font-size:0.82rem;padding:5px 12px">GmbH</span>
+          <span class="tag mandant" style="font-size:0.82rem;padding:5px 12px">GbR</span>
+          <span class="tag mandant" style="font-size:0.82rem;padding:5px 12px">Arbeitnehmer</span>
+          <span class="tag mandant" style="font-size:0.82rem;padding:5px 12px">Immobilien</span>
+          <span class="tag mandant" style="font-size:0.82rem;padding:5px 12px">Gemeinnützig</span>
+        </div>
+        <p style="margin-top:10px;font-size:0.79rem;color:#999">💡 Tipp: Ein Mandant kann nur <em>einen</em> Primärtyp haben. Wählen Sie den für Steuer-Zwecke relevantesten.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCHRITT 2: Upload -->
+  <div class="module-card">
+    <h2>📤 Schritt 2 — CSV hochladen</h2>
+    <div class="sub">Wählen Sie Ihre befüllte CSV-Datei aus. Die Daten werden nur lokal in Ihrem Browser gelesen.</div>
+
+    <div class="upload-zone" id="uploadZone">
+      <input type="file" accept=".csv" onchange="handleFileUpload(this)">
+      <div class="uz-icon">📂</div>
+      <div class="uz-text"><strong>CSV-Datei hier ablegen</strong> oder klicken zum Auswählen</div>
+      <div class="uz-text" style="margin-top:4px;font-size:0.76rem">Unterstützt: .csv (UTF-8, Komma-getrennt)</div>
+    </div>
+    <div id="uploadStatus"></div>
+
+    <div id="mandantenTable" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin:16px 0 10px">
+        <strong style="color:#6B1A1A;font-size:0.95rem" id="mandantenCount"></strong>
+        <button class="dl-btn secondary" style="padding:6px 14px;font-size:0.78rem" onclick="clearMandanten()">✕ Neu laden</button>
+      </div>
+      <div class="m-table-wrap">
+        <table class="m-table" id="mTable">
+          <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Typ</th><th>Relevante Themen</th></tr></thead>
+          <tbody id="mTableBody"></tbody>
+        </table>
+      </div>
+      <button class="gen-btn" id="genBtn" onclick="generateEmails()">✉️ Personalisierte Emails generieren</button>
+    </div>
+  </div>
+
+    <!-- MANDANTEN-SCORING -->
+    <div class="scoring-panel" id="scoringPanel">
+      <div class="scoring-header">
+        <h3>🎯 Prioritäts-Mandanten diese Woche</h3>
+        <div class="sh-sub">Automatisches Ranking · Scoring: Dringend ×3 · Relevant ×2 · Info ×1</div>
+      </div>
+      <div class="scoring-list" id="scoringList"></div>
+    </div>
+
+
+  <!-- SCHRITT 3: Emails -->
+  <div class="module-card" id="emailSection" style="display:none">
+    <h2>✉️ Schritt 3 — Emails prüfen und versenden</h2>
+    <div class="sub">Klicken Sie auf einen Mandanten, um die Email zu sehen. Kopieren Sie den Text oder öffnen Sie direkt Ihren Email-Client.</div>
+
+    <div style="background:#FFF8E8;border:1px solid #F0D080;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:0.81rem;color:#7B5900">
+      💡 <strong>Empfohlen:</strong> Prüfen Sie jede Email kurz und ergänzen Sie ggf. Ihre persönliche Kanzlei-Signatur. Der Disclaimer am Ende ist vorausgefüllt und sollte nicht entfernt werden.
+    </div>
+
+    <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+      <button class="dl-btn secondary" style="font-size:0.8rem;padding:7px 14px" onclick="expandAll()">▼ Alle aufklappen</button>
+      <button class="dl-btn secondary" style="font-size:0.8rem;padding:7px 14px" onclick="collapseAll()">▲ Alle zuklappen</button>
+      <button class="dl-btn" style="font-size:0.8rem;padding:7px 14px" onclick="copyAllEmails()">📋 Alle Emails in Zwischenablage</button>
+    </div>
+
+    <div class="email-list" id="emailList"></div>
+  </div>
+
+  <div class="disclaimer">⚠️ Alle Emails werden lokal generiert. Keine Daten verlassen Ihren Computer. MARA Steuer-Radar 2.0 · KW 27/2026 · Erstellt mit MARA Radar System</div>
+
+</div>
+</div>
+
+<!-- ══════════════════════════════════
+     TAB 3: REDAKTIONSMODUS
+══════════════════════════════════ -->
+<div id="tab-redaktion" class="tab-panel">
+<div class="container">
+
+  <!-- PASSWORT-GATE -->
+  <div id="redLock" class="red-lock">
+    <div class="rl-icon">🔐</div>
+    <h2>Redaktionsmodus</h2>
+    <p>Einträge bearbeiten, hinzufügen oder löschen —<br>und das Tool als aktualisierte HTML-Datei exportieren.<br><br>Passwort: <strong>MARA2026!</strong></p>
+    <div class="red-pw-row">
+      <input type="password" class="red-pw-input" id="redPwInput" placeholder="Passwort eingeben…" onkeydown="if(event.key==='Enter')checkRedaktionPw()">
+      <button class="red-pw-btn" onclick="checkRedaktionPw()">🔓 Entsperren</button>
+    </div>
+    <div class="red-pw-error" id="redPwError" style="display:none">❌ Falsches Passwort. Bitte erneut versuchen.</div>
+    <div style="margin-top:16px;font-size:0.75rem;color:#ccc">Hinweis: Einfacher Zugriffsschutz — keine Verschlüsselung. Nicht für hochsensible Daten.</div>
+  </div>
+
+  <!-- EDITOR (nach Entsperrung) -->
+  <div id="redEditor" class="red-editor">
+
+    <!-- Toolbar -->
+    <div class="red-toolbar">
+      <h2>✏️ Redaktionsmodus aktiv</h2>
+      <div class="rt-kw">
+        <label>KW</label>
+        <input type="text" id="rtKW" value="27" placeholder="17">
+      </div>
+      <div class="rt-kw">
+        <label>Monat / Jahr</label>
+        <input type="text" id="rtMonat" value="April 2026" placeholder="April 2026">
+      </div>
+      <button class="red-add-btn" onclick="openAddModal()">➕ Neuer Eintrag</button>
+      <button class="red-export-btn" onclick="exportHTML()">💾 Als neue HTML exportieren</button>
+      <button class="red-lock-btn" onclick="lockRedaktion()">🔒 Sperren</button>
+    </div>
+
+    <!-- Einträge-Liste -->
+    <div class="red-items" id="redItemsList"></div>
+
+    <!-- Grenzen des Tools -->
+    <div class="red-limits-box">
+      <h4>ℹ️ Wann stößt dieses Tool an seine Grenzen?</h4>
+      Für einen einzelnen Steuerberater ist dieses Offline-Tool bis mindestens Ende 2027 vollständig ausreichend. Kein Server, keine Kosten, vollständig DSGVO-konform. Ein Backend wird erst dann nötig, wenn:
+      <ul>
+        <li><strong>Mehrere Nutzer gleichzeitig bearbeiten</strong> — Browser-Tools kennen keinen Merge-Konflikt-Resolver</li>
+        <li><strong>Push-Updates an alle Kanzlei-Rechner</strong> — ohne Server kein WebSocket, kein automatischer Abgleich</li>
+        <li><strong>Revisionssicheres Änderungsprotokoll</strong> — GoBD-konforme Protokollierung erfordert Backend-DB</li>
+        <li><strong>DATEV- oder Kanzlei-Software-Integration</strong> — erfordert API-Schnittstelle serverseitig</li>
+        <li><strong>Automatischer Fristenalarm per Email</strong> — Cronjob läuft nur auf einem Server, nicht im Browser</li>
+        <li><strong>Mandanten-Login-Portal</strong> — echte Authentifizierung ist ohne Backend nicht sicher realisierbar</li>
+      </ul>
+      <div class="red-limits-hint">💡 Empfehlung: Bei Wachstum auf &gt;2 Nutzer → Migration zu Next.js + Supabase oder ähnlichem Stack sinnvoll (Migrationsaufwand: ca. 2–3 Tage mit KI-Unterstützung).</div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- EDIT/ADD MODAL -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 id="modalTitle">Eintrag bearbeiten</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-footer">
+      <button class="modal-cancel-btn" onclick="closeModal()">Abbrechen</button>
+      <button class="modal-save-btn" onclick="saveModal()">💾 Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════ -->
+<script>
+// ────────────────────────────────────
+// RADAR-DATEN
+// ────────────────────────────────────
+let items = [{ id:1, kat:"Gesetz", ebene:"Gesetz", name:"🚨 JStG 2026 – Kabinettsbeschluss (Regierungsentwurf) am 01.07.2026 erwartet", prio:"dringend", frist:"01.07.2026", mandanten:["GmbH", "GbR", "Freiberufler", "Immobilien"], update:true, desc:"Nach Abschluss der Verbändeanhörung (Frist 12.06.2026) soll das Kabinett den <strong>Regierungsentwurf des Jahressteuergesetzes 2026</strong> voraussichtlich am <strong>01.07.2026</strong> beschließen. Kernpunkte: grundlegende <strong>Neuordnung der umsatzsteuerlichen Organschaft</strong>, Verfahrensvereinfachung bei der Quellensteuerentlastung (§ 50c EStG), Anpassung des Zinssatzes bei der Vollverzinsung sowie eine gesetzliche Regelung zur <strong>Kaufpreisaufteilung bei bebauten Grundstücken</strong>.", handlung:"Mandanten mit Organschaftsstrukturen jetzt vorab informieren; nach dem Kabinettsbeschluss den Regierungsentwurf gegen den Referentenentwurf abgleichen und Gestaltungsbedarf (USt-Organschaft, Kaufpreisaufteilung) priorisieren.", quelle:{name:"Haufe – BMF-Referentenentwurf JStG 2026",url:"https://www.haufe.de/steuern/gesetzgebung-politik/bmf-referentenentwurf-fuer-ein-jahressteuergesetzes-2026_168_687492.html"} },
+  { id:2, kat:"BFH", ebene:"BFH", name:"BFH I R 10/23: § 8b Abs. 3 Satz 8 KStG nicht auf Konfusionsgewinne anwendbar (veröff. 18.06.2026)", prio:"relevant", frist:null, mandanten:["GmbH"], update:true, desc:"Der BFH entschied (<strong>Urteil v. 11.03.2026, I R 10/23</strong>): § 8b Abs. 3 Satz 8 KStG i.d.F. des JStG 2008 ist auf sog. <strong>Konfusionsgewinne</strong> weder unmittelbar (kein Gewinn aus Wertaufholung nach vorangegangener Teilwertabschreibung) noch analog (keine planwidrige Regelungslücke) anwendbar.", handlung:"Bei Kapitalgesellschaften mit Verschmelzungs-/Konfusionssachverhalten und vorangegangenen Teilwertabschreibungen auf Gesellschafterdarlehen die steuerliche Behandlung des Konfusionsgewinns prüfen und ggf. offene Bescheide offenhalten.", quelle:{name:"Haufe – BFH-Entscheidungen 18.06.2026",url:"https://www.haufe.de/steuern/rechtsprechung/bfh-alle-am-1862026-veroeffentlichten-entscheidungen_166_689574.html"} },
+  { id:3, kat:"BFH", ebene:"BFH", name:"BFH II R 1/22: Erbschaftsteuer – abweichende Festsetzung aus Billigkeitsgründen (veröff. 18.06.2026)", prio:"relevant", frist:null, mandanten:["Immobilien", "Arbeitnehmer"], update:true, desc:"Der BFH (<strong>Urteil v. 25.02.2026, II R 1/22</strong>): Die Festsetzung der Erbschaftsteuer kann aus <strong>sachlichen Billigkeitsgründen</strong> ausnahmsweise unbillig sein, wenn der Erbe zwar den Wert des Nachlasses am Stichtag zu versteuern hat, ihn jedoch <strong>kein Verschulden</strong> daran trifft, dass er trotz des Erwerbs von Todes wegen letztlich nicht bereichert ist.", handlung:"Bei Erbfällen, in denen der Nachlasswert nach dem Stichtag ohne Verschulden des Erben weggefallen ist, einen Billigkeitsantrag (§ 163 AO) prüfen und mit dieser Entscheidung begründen.", quelle:{name:"Haufe – BFH-Entscheidungen 18.06.2026",url:"https://www.haufe.de/steuern/rechtsprechung/bfh-alle-am-1862026-veroeffentlichten-entscheidungen_166_689574.html"} },
+  { id:4, kat:"BFH", ebene:"BFH", name:"FG Münster: Fremdüblichkeit eines unbesicherten Wandeldarlehens (veröff. 24.06.2026)", prio:"relevant", frist:null, mandanten:["GmbH"], update:true, desc:"Das FG Münster hat sich zur <strong>Fremdüblichkeit eines unbesicherten Wandeldarlehens</strong> im Konzern bzw. zwischen nahestehenden Personen geäußert – relevant für die Beurteilung verdeckter Gewinnausschüttungen und der Angemessenheit von Konditionen bei Gesellschafterdarlehen.", handlung:"Bei Wandel- oder Gesellschafterdarlehen die Besicherung, Verzinsung und Dokumentation auf Fremdüblichkeit prüfen, um vGA-Risiken und Korrekturen nach § 1 AStG zu vermeiden.", quelle:{name:"Haufe – FG Münster Wandeldarlehen",url:"https://www.haufe.de/steuern/rechtsprechung/fg-muenster-fremdueblichkeit-bei-unbesichertem-wandeldarlehen_166_688706.html"} },
+  { id:5, kat:"Verband", ebene:"Verband", name:"DStV & BStBK: Aktualisierte Datenschutz-Hinweise für Steuerkanzleien", prio:"relevant", frist:null, mandanten:["GmbH", "GbR", "Freiberufler", "Arbeitnehmer", "Immobilien", "Gemeinnützig"], update:true, desc:"DStV und BStBK haben die gemeinsamen <strong>„Hinweise für den Umgang mit personenbezogenen Daten durch Steuerberater und steuerberatende Berufsausübungsgesellschaften\"</strong> unter Berücksichtigung neuerer Rechtsprechung und Gesetzesänderungen <strong>aktualisiert</strong>. Praxisrelevant insbesondere für AVV, TOM und Auskunftsrechte (Art. 15 DSGVO).", handlung:"Eigene Datenschutz-Dokumentation der Kanzlei (Verarbeitungsverzeichnis, AVV-Muster, TOM) gegen die aktualisierten Hinweise abgleichen und ggf. Mandanten-AVV nachziehen.", quelle:{name:"DStV – Aktualisierte Datenschutz-Hinweise",url:"https://www.dstv.de/artikel-pool/aktualisierte-fassung-der-gemeinsamen-hinweise-von-dstv-und-bstbk-zum-datenschutz-in-der-steuerkanzlei"} },
+  { id:6, kat:"Verband", ebene:"Verband", name:"BStBK-Stellungnahme zum JStG 2026: USt-Organschaftsreform begrüßt", prio:"info", frist:null, mandanten:["GmbH", "GbR"], update:true, desc:"Die <strong>BStBK</strong> hat dem BMF am <strong>12.06.2026</strong> ihre Stellungnahme zum Entwurf des JStG 2026 übersandt. Sie begrüßt insbesondere die geplante <strong>Reform der umsatzsteuerlichen Organschaft</strong> (langjährige BStBK-Forderung), äußert aber zu mehreren Detailregelungen Kritik.", handlung:"Die Stellungnahme als Argumentationshilfe für die Mandantenkommunikation nutzen und die kritisierten Punkte im weiteren Gesetzgebungsverfahren beobachten.", quelle:{name:"DATEV magazin – BStBK-Stellungnahme JStG 2026",url:"https://www.datev-magazin.de/nachrichten-steuern-recht/steuern/bstbk-stellungnahme-zum-entwurf-eines-jahressteuergesetzes-2026-jstg-2026-147340"} },
+  { id:7, kat:"BFH", ebene:"BFH", name:"BFH VI R 1/24: Besteuerungsrecht für Lohn an Bord eines Schiffes (DBA-Zypern, veröff. 18.06.2026)", prio:"info", frist:null, mandanten:["Arbeitnehmer"], update:true, desc:"Der BFH (<strong>Urteil v. 09.04.2026, VI R 1/24</strong>): Für Einkünfte aus unselbständiger Arbeit an Bord eines Schiffes im <strong>nationalen Seeverkehr</strong> hat nach Art. 14 Abs. 1 DBA-Zypern 2011 der <strong>Ansässigkeitsstaat</strong> (hier Deutschland) das Besteuerungsrecht.", handlung:"Bei Mandanten mit grenzüberschreitender Seeschifffahrtstätigkeit das DBA-konforme Besteuerungsrecht prüfen; Nischenthema, aber bei Betroffenheit eindeutige Zuordnung.", quelle:{name:"Haufe – BFH-Entscheidungen 18.06.2026",url:"https://www.haufe.de/steuern/rechtsprechung/bfh-alle-am-1862026-veroeffentlichten-entscheidungen_166_689574.html"} },
+  { id:8, kat:"BFH", ebene:"BFH", name:"BFH X R 3/23: Rückforderung einer auf ein Insolvenzanderkonto gezahlten Erstattung (veröff. 18.06.2026)", prio:"info", frist:null, mandanten:["GmbH", "GbR"], update:true, desc:"Der BFH (<strong>Urteil v. 28.01.2026, X R 3/23</strong>): Ein Insolvenzverwalter, der eine zur Masse geschuldete Steuererstattung entgegennimmt und der Masse zuführt, ist <strong>nicht Leistungsempfänger i.S.d. § 37 Abs. 2 AO</strong> – auch nicht bei Zahlung auf ein „Insolvenzanderkonto\".", handlung:"In Insolvenzfällen die Rückforderungsadressaten von Steuererstattungen korrekt bestimmen; Erstattungen an die Masse nicht beim Verwalter persönlich zurückfordern.", quelle:{name:"Haufe – BFH-Entscheidungen 18.06.2026",url:"https://www.haufe.de/steuern/rechtsprechung/bfh-alle-am-1862026-veroeffentlichten-entscheidungen_166_689574.html"} },
+  { id:9, kat:"Frist", ebene:"Steuer", name:"USt-VA Juni / II. Quartal + LSt-Anmeldung – Frist 10.07.2026", prio:"relevant", frist:"10.07.2026", mandanten:["GmbH", "GbR", "Freiberufler"], update:false, desc:"Die <strong>Umsatzsteuer-Voranmeldung</strong> für Juni 2026 bzw. das II. Quartal 2026 sowie die <strong>Lohnsteuer-Anmeldung</strong> Juni/II. Quartal sind bis zum <strong>10.07.2026</strong> elektronisch zu übermitteln. Mit Dauerfristverlängerung verschiebt sich die USt-VA Mai 2026 ebenfalls auf den 10.07.2026. Zahlungs-Schonfrist bis 14.07.2026.", handlung:"Voranmeldungen rechtzeitig finalisieren; bei Liquiditätsengpässen frühzeitig Dauerfristverlängerung bzw. Stundung mit dem Finanzamt klären.", quelle:{name:"RÖDL – Steuertermine 2026",url:"https://www.roedl.com/insights/steuertermine-2026"} },
+  { id:10, kat:"BMF", ebene:"BMF", name:"BMF-Schreiben v. 24.06.2026: Vorsorgepauschale im Lohnsteuerabzug ab 2026", prio:"relevant", frist:null, mandanten:["Arbeitnehmer", "GmbH"], update:false, desc:"Das BMF hat die Berechnung der <strong>Vorsorgepauschale im Lohnsteuerabzugsverfahren ab 2026</strong> neu geregelt. Betroffen sind insbesondere die Berücksichtigung der Beiträge zur Kranken- und Pflegeversicherung sowie geänderte Mindestvorsorgepauschalen.", handlung:"Lohnabrechnungsstellen und Lohnprogramme auf die aktualisierten Parameter prüfen; bei Mandanten mit eigener Lohnbuchhaltung die korrekte Anwendung sicherstellen.", quelle:{name:"BMF – BMF-Schreiben (Übersicht)",url:"https://www.bundesfinanzministerium.de/Web/DE/Service/Publikationen/BMF_Schreiben/bmf_schreiben.html"} },
+  { id:11, kat:"Frist", ebene:"EU/Gesetz", name:"🚨 Pillar 2 – Mindeststeuerbericht Wirtschaftsjahr 2024: Frist 30.06.2026", prio:"dringend", frist:"30.06.2026", mandanten:["GmbH"], update:false, desc:"Für große Unternehmensgruppen läuft die Frist zur erstmaligen Abgabe des <strong>Mindeststeuerberichts</strong> nach dem Mindeststeuergesetz (Pillar 2) für das Wirtschaftsjahr 2024 zum <strong>30.06.2026</strong> aus. Verspätung kann zu Sanktionen führen.", handlung:"Betroffene Gruppen (konsolidierter Umsatz ≥ 750 Mio. €) sofort kontaktieren: Abgabebereitschaft prüfen, ggf. mit dem zuständigen Konzernträger koordinieren – nur noch wenige Tage.", quelle:{name:"EY – Pillar 2 Update Mindeststeuer",url:"https://www.ey.com/de_de/technical/steuernachrichten"} },
+  { id:12, kat:"Digital", ebene:"Verwaltung", name:"Digitale Steuerbescheide (§ 122a AO) – Bekanntgabe-Wechsel seit 01.06.2026", prio:"relevant", frist:null, mandanten:["GmbH", "GbR", "Freiberufler", "Arbeitnehmer", "Immobilien", "Gemeinnützig"], update:false, desc:"Seit dem <strong>01.06.2026</strong> kann der Bekanntgabeweg für Steuerbescheide auf <strong>digitale Bereitstellung zum Datenabruf (§ 122a AO)</strong> umgestellt werden. Aktuell stellen viele Kanzleien die Einwilligungen und die Vollmachtsdatenbank entsprechend um.", handlung:"Mandanteneinwilligungen zur elektronischen Bekanntgabe einholen und die Fristenkontrolle auf den geänderten Bekanntgabezeitpunkt (Abrufbarkeit + Bereitstellungsfiktion) umstellen.", quelle:{name:"DStV – Digitale Steuerbescheide 2026",url:"https://www.dstv.de/"} },
+  { id:13, kat:"Verband", ebene:"Verband", name:"BStBK: Vollmachtsdatenbank modernisiert (VDB neu / DIVA III)", prio:"relevant", frist:null, mandanten:["GmbH", "GbR", "Freiberufler", "Arbeitnehmer", "Immobilien", "Gemeinnützig"], update:false, desc:"Im Zuge der Umstellung des Bescheidbekanntgabewegs zum 01.06.2026 passen derzeit viele Steuerberater ihre Einträge in der <strong>Vollmachtsdatenbank (VDB)</strong> an. Die VDB wurde technisch grundlegend modernisiert.", handlung:"VDB-Bestände sichten: Vollmachtsumfang prüfen, Bekanntgabevollmachten für den digitalen Abruf ergänzen und veraltete Einträge bereinigen.", quelle:{name:"BStBK – Pressemitteilungen",url:"https://www.bstbk.de/de/presse/pressemitteilungen"} },
+  { id:14, kat:"Digital", ebene:"Steuer", name:"E-Rechnung B2B – Übergangsfristen laufen bis Ende 2026 / 2027", prio:"info", frist:null, mandanten:["GmbH", "GbR", "Freiberufler"], update:false, desc:"Die <strong>obligatorische E-Rechnung im B2B-Bereich</strong> ist seit 01.01.2025 empfangsseitig Pflicht. Die <strong>Übergangsfristen</strong> für den Versand (Papier/sonstige Formate) laufen gestaffelt bis Ende <strong>2026 bzw. 2027</strong> (umsatzabhängig) aus.", handlung:"Mandanten nach Umsatzgröße segmentieren und einen Umstellungsfahrplan für den E-Rechnungs-Versand vor Ablauf der jeweiligen Übergangsfrist aufsetzen.", quelle:{name:"Haufe – Umsatzsteuer 2026 Überblick",url:"https://www.haufe.de/steuern/"} },
+  { id:15, kat:"BFH", ebene:"BFH", name:"Grundsteuer Baden-Württemberg verfassungsgemäß (BFH II R 26/24 u. 27/24)", prio:"info", frist:null, mandanten:["Immobilien"], update:false, desc:"Der BFH hat das <strong>Landesgrundsteuergesetz Baden-Württemberg</strong> (Bodenwertmodell) als verfassungsgemäß bestätigt (Urteile v. 20.05.2026). Auch das <strong>niedersächsische Grundsteuergesetz</strong> wurde inzwischen für verfassungsgemäß erklärt (Revision zum BFH zugelassen).", handlung:"Einsprüche gegen Grundsteuerwert-/Messbescheide, die allein auf Verfassungswidrigkeit der Landesmodelle gestützt sind, mit Mandanten überprüfen; Erfolgsaussichten neu bewerten.", quelle:{name:"Haufe – LGrStG BW nicht verfassungswidrig",url:"https://www.haufe.de/steuern/rechtsprechung/"} },
+  { id:16, kat:"Verband", ebene:"Verband", name:"9. StBÄndG: Fremdbesitzverbot nach Bundesrats-Veto weiter offen", prio:"info", frist:null, mandanten:["GmbH", "GbR", "Freiberufler"], update:false, desc:"Der weitere Gang des <strong>9. Steuerberatungsänderungsgesetzes</strong> bleibt nach dem Bundesrats-Votum offen. Im Fokus steht die Diskussion um das <strong>Fremdbesitzverbot</strong> bzw. die Beteiligung berufsfremder Kapitalgeber an Berufsausübungsgesellschaften.", handlung:"Berufspolitisch beobachten; bei Mandanten mit Kanzlei- oder Beteiligungsstrukturen den möglichen Reformpfad im Blick behalten.", quelle:{name:"BStBK – Pressemitteilungen",url:"https://www.bstbk.de/de/presse/pressemitteilungen"} }];
+
+// ────────────────────────────────────
+// TAB-LOGIK
+// ────────────────────────────────────
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ────────────────────────────────────
+// RADAR-LOGIK
+// ────────────────────────────────────
+let activeFilters = { prio:'alle', mandant:'alle', kat:'alle' };
+let searchTerm = '';
+
+// ── FRISTEN-AMPEL HILFSFUNKTIONEN ──
+function parseFrist(s) {
+  if(!s) return null;
+  var m = s.match(/(\d{2})\.(\d{2})\.(\d{4})/);
+  if(!m) return null;
+  return new Date(parseInt(m[3]), parseInt(m[2])-1, parseInt(m[1]));
+}
+function getAmpelInfo(fristStr) {
+  var d = parseFrist(fristStr);
+  if(!d) return null;
+  var today = new Date(); today.setHours(0,0,0,0);
+  var diff = Math.round((d - today) / 86400000);
+  if(diff < 0)  return { cls:'vergangen', icon:'⚫', label:'Überfällig', days:diff };
+  if(diff <= 7)  return { cls:'kritisch',  icon:'🔴', label:(diff===0?'Heute!':diff+' Tage'), days:diff };
+  if(diff <= 21) return { cls:'dringend2', icon:'🟠', label:diff+' Tage', days:diff };
+  if(diff <= 60) return { cls:'bald',      icon:'🟡', label:diff+' Tage', days:diff };
+  return             { cls:'ok',         icon:'🟢', label:diff+' Tage', days:diff };
+}
+
+function buildCard(item) {
+  var prioLabel = {dringend:'\uD83D\uDD34 Dringend', relevant:'\uD83D\uDFE1 Relevant', info:'\uD83D\uDD35 Info'}[item.prio];
+  var prioLabelMap = {dringend:'🔴 Dringend', relevant:'🟡 Relevant', info:'🔵 Info'};
+  prioLabel = prioLabelMap[item.prio];
+  var ai = getAmpelInfo(item.frist);
+  var fristTag = item.frist ? '<span class="tag frist">📅 ' + item.frist + '</span>' : '';
+  var ampelBadge = ai ? ('<span class="ampel-badge ampel-' + ai.cls + '">' + ai.icon + ' ' + ai.label + '</span>') : '';
+  var updateBadge = item.update ? '<span class="update-badge">⚡ Neu</span>' : '';
+  var mandantTags = item.mandanten.map(function(m){ return '<span class="tag mandant">' + m + '</span>'; }).join('');
+  var actionHtml = item.handlung ? '<div class="card-action">' + item.handlung + '</div>' : '';
+  var searchData = (item.name + ' ' + item.desc.replace(/<[^>]+>/g,'') + ' ' + (item.handlung||'') + ' ' + item.mandanten.join(' ')).toLowerCase().replace(/"/g,'&quot;');
+  return '<div class="item-card prio-' + item.prio + '" data-id="' + item.id + '" data-prio="' + item.prio + '" data-kat="' + item.kat + '" data-mandanten="' + item.mandanten.join(',') + '" data-search="' + searchData + '">'
+    + '<div class="card-top">'
+    + '<a class="card-name" href="' + item.quelle.url + '" target="_blank" rel="noopener">' + item.name + '</a>'
+    + '<span class="prio-badge ' + item.prio + '">' + prioLabel + '</span>'
+    + '</div>'
+    + '<div class="card-desc">' + item.desc + '</div>'
+    + actionHtml
+    + '<div class="card-footer">'
+    + '<span class="tag ebene">' + item.ebene + '</span>'
+    + '<span class="tag kat">' + item.kat + '</span>'
+    + fristTag + ampelBadge + mandantTags + updateBadge
+    + '<a class="link-btn" href="' + item.quelle.url + '" target="_blank" rel="noopener">🔗 Quelle</a>'
+    + '</div>'
+    + '</div>';
+}
+
+function renderAll() {
+  document.getElementById('cardsGrid').innerHTML = items.map(buildCard).join('');
+  document.getElementById('cntD').textContent = items.filter(i => i.prio==='dringend').length;
+  document.getElementById('cntR').textContent = items.filter(i => i.prio==='relevant').length;
+  document.getElementById('cntI').textContent = items.filter(i => i.prio==='info').length;
+  applyFilters();
+}
+
+function applyFilters() {
+  let v = 0;
+  document.querySelectorAll('.item-card').forEach(card => {
+    const ok = (activeFilters.prio==='alle' || card.dataset.prio===activeFilters.prio)
+      && (activeFilters.kat==='alle' || card.dataset.kat===activeFilters.kat)
+      && (activeFilters.mandant==='alle' || card.dataset.mandanten.split(',').includes(activeFilters.mandant))
+      && (!searchTerm || card.dataset.search.includes(searchTerm.toLowerCase()));
+    card.classList.toggle('hidden', !ok);
+    if(ok) v++;
+  });
+  document.getElementById('resultCount').innerHTML = `<strong>${v}</strong> Einträge angezeigt`;
+  document.getElementById('noResults').style.display = v===0 ? 'block':'none';
+}
+
+function setFilter(type, val, btn) {
+  activeFilters[type] = val;
+  document.querySelectorAll(`[data-filter="${type}"]`).forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilters();
+}
+
+function doSearch(val) { searchTerm = val.trim(); applyFilters(); }
+
+// ────────────────────────────────────
+// CSV-VORLAGE DOWNLOAD
+// ────────────────────────────────────
+function downloadTemplate() {
+  const csv = `Name,Email,Typ\nMuster GmbH,info@muster-gmbh.de,GmbH\nAnna Freiberuflerin,anna@example.com,Freiberufler\nHans Arbeitnehmer,hans@example.com,Arbeitnehmer\nImmobilien Müller,mueller@example.com,Immobilien\nSozialwerk e.V.,info@sozialwerk.de,Gemeinnützig\nSchmidt & Partner,info@schmidt-partner.de,GbR`;
+  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'MARA-Mandanten-Vorlage.csv';
+  a.click();
+}
+
+// ────────────────────────────────────
+// CSV PARSING & MATCHING
+// ────────────────────────────────────
+let mandanten = [];
+
+function parseCSV(text) {
+  const lines = text.replace(/\r/g,'').split('\n').filter(l => l.trim());
+  if(lines.length < 2) return [];
+  const result = [];
+  for(let i = 1; i < lines.length; i++) {
+    const parts = lines[i].split(',').map(s => s.trim().replace(/^"|"$/g,''));
+    if(parts.length >= 3 && parts[1].includes('@')) {
+      result.push({ name: parts[0], email: parts[1], typ: parts[2] });
+    }
+  }
+  return result;
+}
+
+function getMatchingItems(typ) {
+  return items.filter(item => item.mandanten.includes(typ));
+}
+
+function handleFileUpload(input) {
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const parsed = parseCSV(e.target.result);
+    const status = document.getElementById('uploadStatus');
+    if(parsed.length === 0) {
+      status.innerHTML = '<div class="status-msg error">⚠️ Keine gültigen Mandanten gefunden. Bitte CSV-Format prüfen (Name, Email, Typ).</div>';
+      return;
+    }
+    const validTypes = ["Freiberufler","GmbH","GbR","Arbeitnehmer","Immobilien","Gemeinnützig"];
+    const invalid = parsed.filter(m => !validTypes.includes(m.typ));
+    if(invalid.length > 0) {
+      status.innerHTML = `<div class="status-msg error">⚠️ ${invalid.length} Mandant(en) mit ungültigem Typ: ${invalid.map(m=>m.name+' ('+m.typ+')').join(', ')}. Bitte korrigieren.</div>`;
+    } else {
+      status.innerHTML = `<div class="status-msg success">✅ ${parsed.length} Mandanten erfolgreich geladen.</div>`;
+    }
+    mandanten = parsed.filter(m => validTypes.includes(m.typ));
+    renderMandantenTable();
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function renderMandantenTable() {
+  const tbody = document.getElementById('mTableBody');
+  document.getElementById('mandantenCount').textContent = `${mandanten.length} Mandanten geladen`;
+  tbody.innerHTML = mandanten.map((m, i) => {
+    const matched = getMatchingItems(m.typ);
+    const dringend = matched.filter(x => x.prio==='dringend').length;
+    const relevant = matched.filter(x => x.prio==='relevant').length;
+    const info = matched.filter(x => x.prio==='info').length;
+    const countHtml = matched.length > 0
+      ? `<span class="match-count">${matched.length} Themen</span> ${dringend>0?'<span class="tag" style="background:#FDECEA;border-color:#F1948A;color:#C0392B;font-size:0.68rem">🔴 '+dringend+' dringend</span>':''}`
+      : '<span class="match-none">Kein Typ-Match</span>';
+    return `<tr>
+      <td>${i+1}</td>
+      <td><strong>${m.name}</strong></td>
+      <td style="font-size:0.8rem;color:#666">${m.email}</td>
+      <td><span class="typ-chip">${m.typ}</span></td>
+      <td>${countHtml}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('mandantenTable').style.display = 'block';
+  document.getElementById('genBtn').disabled = mandanten.length === 0;
+  renderScoring();
+}
+
+function clearMandanten() {
+  mandanten = [];
+  document.getElementById('mandantenTable').style.display = 'none';
+  document.getElementById('uploadStatus').innerHTML = '';
+  document.getElementById('emailSection').style.display = 'none';
+  var sp = document.getElementById('scoringPanel'); if(sp) sp.style.display='none';
+}
+
+// ────────────────────────────────────
+// EMAIL-GENERIERUNG
+// ────────────────────────────────────
+function generateEmails() {
+  const list = document.getElementById('emailList');
+  list.innerHTML = '';
+  const kw = 'KW 27 / Juni/Juli 2026';
+
+  mandanten.forEach((m, idx) => {
+    const matched = getMatchingItems(m.typ);
+    if(matched.length === 0) return;
+
+    const dringend = matched.filter(x => x.prio==='dringend');
+    const relevant = matched.filter(x => x.prio==='relevant');
+    const info = matched.filter(x => x.prio==='info');
+
+    let body = `Sehr geehrte/r ${m.name},\n\n`;
+    body += `im Rahmen unserer digitalen Mandantenkommunikation informieren wir Sie über aktuelle steuerliche Themen, die für Sie als ${m.typ} relevant sind (${kw}).\n\n`;
+
+    if(dringend.length > 0) {
+      body += `──────────────────────────────────────\n🔴 DRINGEND – HANDLUNGSBEDARF\n──────────────────────────────────────\n`;
+      dringend.forEach(item => {
+        body += `\n▶ ${item.name}`;
+        if(item.frist) body += `\n   Frist: ${item.frist}`;
+        const plainDesc = item.desc.replace(/<strong>/g,'').replace(/<\/strong>/g,'');
+        body += `\n   ${plainDesc}`;
+        if(item.handlung) body += `\n   → Handlungsbedarf: ${item.handlung}`;
+        body += `\n   Quelle: ${item.quelle.url}\n`;
+      });
+    }
+
+    if(relevant.length > 0) {
+      body += `\n──────────────────────────────────────\n🟡 RELEVANT – NÄCHSTE ABRECHNUNG\n──────────────────────────────────────\n`;
+      relevant.forEach(item => {
+        body += `\n▶ ${item.name}\n`;
+        const plainDesc = item.desc.replace(/<strong>/g,'').replace(/<\/strong>/g,'');
+        body += `   ${plainDesc}\n`;
+      });
+    }
+
+    if(info.length > 0) {
+      body += `\n──────────────────────────────────────\n🔵 INFO – ALLGEMEIN WICHTIG\n──────────────────────────────────────\n`;
+      info.forEach(item => {
+        body += `\n▶ ${item.name}`;
+        if(item.frist) body += ` (${item.frist})`;
+        body += `\n`;
+      });
+    }
+
+    body += `\n──────────────────────────────────────\nBitte sprechen Sie uns bei Fragen jederzeit an. Wir stehen Ihnen gerne zur Verfügung.\n\nMit freundlichen Grüßen\n\n[Ihre Kanzlei-Signatur]\n\n──────────────────────────────────────\n⚠️ HINWEIS: Diese Information wurde mithilfe von KI-gestütztem MARA Steuer-Radar ${kw} erstellt. Sie ersetzt keine individuelle steuerrechtliche Beratung. Bitte sprechen Sie spezifische Fragen direkt mit Ihrem Steuerberater ab.\n──────────────────────────────────────`;
+
+    const subject = `Steuer-Radar ${kw}: ${dringend.length > 0 ? dringend.length + ' dringende Themen + ' : ''}${matched.length} aktuelle Themen für Sie`;
+    const mailtoLink = `mailto:${m.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+    const card = document.createElement('div');
+    card.className = 'email-card';
+    card.id = `ec-${idx}`;
+    card.innerHTML = `
+      <div class="email-header" onclick="toggleEmail(${idx})">
+        <div class="eh-left">
+          <span class="email-name">${m.name}</span>
+          <span class="email-meta">${m.email} · ${m.typ}</span>
+        </div>
+        <div class="eh-right">
+          ${dringend.length>0 ? `<span class="count-badge" style="background:#C0392B">🔴 ${dringend.length}</span>` : ''}
+          <span class="count-badge">${matched.length} Themen</span>
+          <span class="toggle-icon">▼</span>
+        </div>
+      </div>
+      <div class="email-body">
+        <div style="font-size:0.78rem;color:#888;margin-bottom:8px">
+          <strong>Betreff:</strong> ${subject}
+        </div>
+        <div class="email-preview" id="ep-${idx}">${body}</div>
+        <div class="action-row">
+          <button class="copy-btn" id="cb-${idx}" onclick="copyEmail(${idx})">📋 Email kopieren</button>
+          <a class="mailto-btn" href="${mailtoLink}">📬 In Email-Client öffnen</a>
+        </div>
+      </div>`;
+    list.appendChild(card);
+  });
+
+  document.getElementById('emailSection').style.display = 'block';
+  document.getElementById('emailSection').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function toggleEmail(idx) {
+  const card = document.getElementById('ec-'+idx);
+  card.classList.toggle('open');
+}
+
+function expandAll() {
+  document.querySelectorAll('.email-card').forEach(c => c.classList.add('open'));
+}
+
+function collapseAll() {
+  document.querySelectorAll('.email-card').forEach(c => c.classList.remove('open'));
+}
+
+function copyEmail(idx) {
+  const text = document.getElementById('ep-'+idx).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('cb-'+idx);
+    btn.textContent = '✅ Kopiert!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '📋 Email kopieren'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+function copyAllEmails() {
+  const all = [];
+  mandanten.forEach((m, idx) => {
+    const ep = document.getElementById('ep-'+idx);
+    if(ep) {
+      all.push(`===== ${m.name} (${m.email}) =====\n${ep.textContent}\n\n`);
+    }
+  });
+  if(all.length > 0) {
+    navigator.clipboard.writeText(all.join('')).then(() => alert(`✅ ${all.length} Emails in die Zwischenablage kopiert.`));
+  }
+}
+
+// ────────────────────────────────────
+// DRAG & DROP
+// ────────────────────────────────────
+const uploadZone = document.getElementById('uploadZone');
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault();
+  uploadZone.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if(file && file.name.endsWith('.csv')) {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const parsed = parseCSV(ev.target.result);
+      mandanten = parsed;
+      document.getElementById('uploadStatus').innerHTML = `<div class="status-msg success">✅ ${parsed.length} Mandanten per Drag & Drop geladen.</div>`;
+      renderMandantenTable();
+    };
+    reader.readAsText(file,'UTF-8');
+  }
+});
+
+
+// ────────────────────────────────────
+// FRISTEN-PANEL
+// ────────────────────────────────────
+function toggleFristenPanel() {
+  var body = document.getElementById('fristenBody');
+  var icon = document.getElementById('fristenToggleIcon');
+  body.classList.toggle('open');
+  icon.textContent = body.classList.contains('open') ? '▲' : '▼';
+}
+
+function renderFristenPanel() {
+  var withDate = items.filter(function(i){ return parseFrist(i.frist); });
+  // Summary im Header immer aktualisieren
+  var kritisch = withDate.filter(function(i){ var a=getAmpelInfo(i.frist); return a&&(a.cls==='kritisch'||a.cls==='vergangen'); }).length;
+  var dringend2 = withDate.filter(function(i){ var a=getAmpelInfo(i.frist); return a&&a.cls==='dringend2'; }).length;
+  var sumEl = document.getElementById('fristenSummary');
+  if(sumEl) {
+    var parts = [];
+    if(kritisch>0) parts.push('🔴 '+kritisch+' kritisch');
+    if(dringend2>0) parts.push('🟠 '+dringend2+' dringend');
+    sumEl.textContent = parts.length>0 ? parts.join(' · ') : '✅ Alle Fristen im grünen Bereich';
+  }
+  if(withDate.length===0) {
+    document.getElementById('fristenBody').innerHTML = '<p style="color:#aaa;font-size:0.84rem;padding:10px 0">Keine Einträge mit konkretem Datum.</p>';
+    return;
+  }
+  // Sortierung: Überfällig zuerst, dann aufsteigend nach Tagen
+  withDate.sort(function(a,b){
+    var da = getAmpelInfo(a.frist), db = getAmpelInfo(b.frist);
+    if(!da||!db) return 0;
+    return da.days - db.days;
+  });
+  document.getElementById('fristenBody').innerHTML = withDate.map(function(item){
+    var ai = getAmpelInfo(item.frist);
+    var badge = ai ? '<span class="ampel-badge ampel-'+ai.cls+'">'+ai.icon+' '+ai.label+'</span>' : '';
+    var mTags = item.mandanten.map(function(m){ return '<span class="tag mandant" style="font-size:0.67rem;padding:2px 6px">'+m+'</span>'; }).join('');
+    return '<div class="frist-row">'+badge+'<span class="frist-name">'+item.name+'</span><span class="frist-date">'+item.frist+'</span><span class="frist-mandanten">'+mTags+'</span></div>';
+  }).join('');
+}
+
+// ────────────────────────────────────
+// MANDANTEN-SCORING
+// ────────────────────────────────────
+function renderScoring() {
+  if(!mandanten||mandanten.length===0) return;
+  var panel = document.getElementById('scoringPanel');
+  if(!panel) return;
+  var scored = mandanten.map(function(m){
+    var matched = items.filter(function(i){ return i.mandanten.indexOf(m.typ)>=0; });
+    var dringend = matched.filter(function(i){ return i.prio==='dringend'; });
+    var score = matched.reduce(function(s,i){ return s+(i.prio==='dringend'?3:i.prio==='relevant'?2:1); },0);
+    return { m:m, score:score, dringend:dringend.length, total:matched.length };
+  });
+  scored.sort(function(a,b){ return b.score-a.score; });
+  var top = scored.slice(0,5);
+  var medals = ['🥇','🥈','🥉','4.','5.'];
+  document.getElementById('scoringList').innerHTML = top.map(function(s,i){
+    var rankCls = i<3?'rank-'+(i+1):'';
+    var dringendHtml = s.dringend>0?'<span style="color:#C0392B;font-weight:700">🔴 '+s.dringend+' dringend</span> · ':'';
+    return '<div class="scoring-row '+rankCls+'">'
+      +'<div class="scoring-rank">'+medals[i]+'</div>'
+      +'<div class="scoring-info">'
+      +'<div class="scoring-name">'+s.m.name+'</div>'
+      +'<div class="scoring-detail">'+s.m.typ+' · '+dringendHtml+s.total+' relevante Themen</div>'
+      +'</div>'
+      +'<div class="scoring-score"><div class="scoring-num">'+s.score+'</div><div class="scoring-lbl">Punkte</div></div>'
+      +'</div>';
+  }).join('');
+  panel.style.display='block';
+}
+
+// ────────────────────────────────────
+// REDAKTIONSMODUS
+// ────────────────────────────────────
+var redaktionUnlocked = false;
+var editingId = null;
+
+function checkRedaktionPw() {
+  var pw = document.getElementById('redPwInput').value;
+  if(pw === 'MARA2026!') {
+    redaktionUnlocked = true;
+    document.getElementById('redLock').style.display = 'none';
+    document.getElementById('redEditor').style.display = 'block';
+    renderRedaktionItems();
+  } else {
+    document.getElementById('redPwError').style.display = 'block';
+    document.getElementById('redPwInput').value = '';
+    document.getElementById('redPwInput').focus();
+  }
+}
+
+function lockRedaktion() {
+  redaktionUnlocked = false;
+  document.getElementById('redLock').style.display = 'block';
+  document.getElementById('redEditor').style.display = 'none';
+  document.getElementById('redPwInput').value = '';
+  document.getElementById('redPwError').style.display = 'none';
+}
+
+function renderRedaktionItems() {
+  var order = {dringend:0,relevant:1,info:2};
+  var sorted = items.slice().sort(function(a,b){ return order[a.prio]-order[b.prio]; });
+  var prioLabels = {dringend:'🔴 Dringend',relevant:'🟡 Relevant',info:'🔵 Info'};
+  document.getElementById('redItemsList').innerHTML = sorted.map(function(item){
+    return '<div class="red-item-row prio-'+item.prio+'">'
+      +'<div class="red-item-info">'
+      +'<div class="red-item-name">'+item.name+'</div>'
+      +'<div class="red-item-meta">'+item.kat+' · '+item.ebene+' · '+prioLabels[item.prio]+(item.frist?' · 📅 '+item.frist:'')+'</div>'
+      +'</div>'
+      +'<div class="red-item-actions">'
+      +'<button class="red-edit-btn" onclick="openEditModal('+item.id+')">✏️ Bearbeiten</button>'
+      +'<button class="red-del-btn" onclick="deleteItem('+item.id+')">🗑️ Löschen</button>'
+      +'</div></div>';
+  }).join('');
+}
+
+function openEditModal(id) {
+  var item = items.find(function(i){ return i.id===id; });
+  if(!item) return;
+  editingId = id;
+  document.getElementById('modalTitle').textContent = 'Eintrag bearbeiten — #'+id;
+  fillModalForm(item);
+  document.getElementById('editModal').classList.add('open');
+}
+
+function openAddModal() {
+  editingId = null;
+  var nextId = items.reduce(function(mx,i){ return Math.max(mx,i.id); },0)+1;
+  document.getElementById('modalTitle').textContent = 'Neuer Eintrag';
+  fillModalForm({id:nextId,kat:'Frist',ebene:'Steuer',name:'',prio:'relevant',frist:null,mandanten:[],update:false,desc:'',handlung:'',quelle:{name:'',url:''}});
+  document.getElementById('editModal').classList.add('open');
+}
+
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function fillModalForm(item) {
+  var katOpts = ['Frist','BFH','BMF','Änderung','Digital'];
+  var mandAll  = ['Freiberufler','GmbH','GbR','Arbeitnehmer','Immobilien','Gemeinnützig'];
+  var body = document.getElementById('modalBody');
+  body.innerHTML =
+    '<input type="hidden" id="mf-id" value="'+item.id+'">'
+    +'<div class="form-row"><label>Titel *</label><input class="form-input" id="mf-name" value="'+esc(item.name)+'" placeholder="Titel des Eintrags"></div>'
+    +'<div class="form-row-2">'
+    +'<div class="form-row"><label>Kategorie</label><select class="form-select" id="mf-kat">'+katOpts.map(function(k){ return '<option value="'+k+'"'+(item.kat===k?' selected':'')+'>'+k+'</option>'; }).join('')+'</select></div>'
+    +'<div class="form-row"><label>Priorität</label><select class="form-select" id="mf-prio"><option value="dringend"'+(item.prio==='dringend'?' selected':'')+'>🔴 Dringend</option><option value="relevant"'+(item.prio==='relevant'?' selected':'')+'>🟡 Relevant</option><option value="info"'+(item.prio==='info'?' selected':'')+'>🔵 Info</option></select></div>'
+    +'</div>'
+    +'<div class="form-row-2">'
+    +'<div class="form-row"><label>Ebene</label><input class="form-input" id="mf-ebene" value="'+esc(item.ebene)+'" placeholder="z.B. Steuer, BFH, EU/Gesetz"></div>'
+    +'<div class="form-row"><label>Frist (TT.MM.JJJJ)</label><input class="form-input" id="mf-frist" value="'+esc(item.frist||'')+'" placeholder="10.04.2026 oder leer lassen"></div>'
+    +'</div>'
+    +'<div class="form-row"><label>Mandantentypen</label><div class="form-chk-group" id="mf-mGroup">'+mandAll.map(function(m){ return '<label class="form-chk-lbl'+(item.mandanten.indexOf(m)>=0?' checked':'')+'" data-v="'+m+'"><input type="checkbox" value="'+m+'"'+(item.mandanten.indexOf(m)>=0?' checked':'')+'>'+m+'</label>'; }).join('')+'</div></div>'
+    +'<div class="form-row"><label>Beschreibung (HTML erlaubt)</label><textarea class="form-textarea" id="mf-desc" style="min-height:100px">'+esc(item.desc)+'</textarea></div>'
+    +'<div class="form-row"><label>Handlungsbedarf</label><textarea class="form-textarea" id="mf-handlung">'+esc(item.handlung||'')+'</textarea></div>'
+    +'<div class="form-row-2">'
+    +'<div class="form-row"><label>Quelle Name</label><input class="form-input" id="mf-qname" value="'+esc(item.quelle.name)+'"></div>'
+    +'<div class="form-row"><label>Quelle URL</label><input class="form-input" id="mf-qurl" value="'+esc(item.quelle.url)+'" placeholder="https://..."></div>'
+    +'</div>'
+    +'<div class="form-row"><label style="display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-weight:600;cursor:pointer"><input type="checkbox" id="mf-update"'+(item.update?' checked':'')+' style="width:16px;height:16px"> Als ⚡ Neu markieren</label></div>';
+  // Checkbox-Styling per JS
+  body.querySelectorAll('.form-chk-lbl').forEach(function(lbl){
+    lbl.querySelector('input').addEventListener('change', function(){
+      lbl.classList.toggle('checked', this.checked);
+    });
+  });
+}
+
+function closeModal() {
+  document.getElementById('editModal').classList.remove('open');
+  editingId = null;
+}
+
+function saveModal() {
+  var name = document.getElementById('mf-name').value.trim();
+  if(!name){ alert('Bitte einen Titel eingeben.'); return; }
+  var id = parseInt(document.getElementById('mf-id').value);
+  var chks = document.querySelectorAll('#mf-mGroup input[type=checkbox]:checked');
+  var mandArr = Array.prototype.slice.call(chks).map(function(c){ return c.value; });
+  var rawDesc = document.getElementById('mf-desc').value.trim();
+  // Unescape HTML back (user edited escaped, put back)
+  var tmp = document.createElement('textarea'); tmp.innerHTML = rawDesc;
+  var descVal = tmp.value;
+  var rawHand = document.getElementById('mf-handlung').value.trim();
+  tmp.innerHTML = rawHand; var handVal = tmp.value;
+  var newItem = {
+    id:id, kat:document.getElementById('mf-kat').value,
+    ebene:document.getElementById('mf-ebene').value.trim(),
+    name:name, prio:document.getElementById('mf-prio').value,
+    frist:document.getElementById('mf-frist').value.trim()||null,
+    mandanten:mandArr, update:document.getElementById('mf-update').checked,
+    desc:descVal, handlung:handVal,
+    quelle:{name:document.getElementById('mf-qname').value.trim(), url:document.getElementById('mf-qurl').value.trim()}
+  };
+  if(editingId!==null){
+    var idx = items.findIndex(function(i){ return i.id===editingId; });
+    if(idx>=0) items[idx]=newItem;
+  } else {
+    items.push(newItem);
+  }
+  closeModal();
+  renderAll();
+  renderFristenPanel();
+  renderRedaktionItems();
+}
+
+function deleteItem(id) {
+  var item = items.find(function(i){ return i.id===id; });
+  if(!item) return;
+  if(!confirm('Eintrag "'+item.name+'" wirklich löschen?')) return;
+  items = items.filter(function(i){ return i.id!==id; });
+  renderAll();
+  renderFristenPanel();
+  renderRedaktionItems();
+}
+
+function serializeItems() {
+  return 'let items = [\n' + items.map(function(item){
+    return '  { id:'+item.id
+      +', kat:'+JSON.stringify(item.kat)
+      +', ebene:'+JSON.stringify(item.ebene)
+      +', name:'+JSON.stringify(item.name)
+      +', prio:'+JSON.stringify(item.prio)
+      +', frist:'+JSON.stringify(item.frist)
+      +', mandanten:'+JSON.stringify(item.mandanten)
+      +', update:'+item.update
+      +', desc:'+JSON.stringify(item.desc)
+      +', handlung:'+JSON.stringify(item.handlung)
+      +', quelle:{name:'+JSON.stringify(item.quelle.name)+',url:'+JSON.stringify(item.quelle.url)+'} }';
+  }).join(',\n')+'\n];';
+}
+
+function exportHTML() {
+  var kw   = document.getElementById('rtKW').value.trim() || '17';
+  var monat = document.getElementById('rtMonat').value.trim() || 'April 2026';
+  var html = document.documentElement.outerHTML;
+  // Items-Block ersetzen
+  html = html.replace(/let items = \[[\s\S]*?\n\];/, serializeItems());
+  // KW im Header und Title updaten
+  html = html.replace(/KW \d+ · [A-Za-züäöÜÄÖ]+ \d+/g, 'KW '+kw+' · '+monat);
+  html = html.replace(/MARA Steuer-Radar 2\.0 \| KW \d+ · \d+/, 'MARA Steuer-Radar 2.0 | KW '+kw+' · 2026');
+  var blob = new Blob([html], {type:'text/html;charset=utf-8'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'MARA-Steuer-Radar-KW'+kw+'-2026.html';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(a.href); }, 5000);
+}
+
+// ────────────────────────────────────
+// INIT
+// ────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function(){ renderAll(); renderFristenPanel(); });
+</script>
+</body>
+</html>
