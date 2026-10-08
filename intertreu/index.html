@@ -352,6 +352,59 @@ table.m-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
   </div>
 </div>
 
+<!-- ══ AUDIO ══ -->
+<style>
+.mara-audio{display:none;background:#3d0f0f;color:#fff;padding:10px 40px;gap:12px;align-items:center;flex-wrap:wrap}
+.mara-audio.on{display:flex}
+.ma-btn{display:none;align-items:center;gap:10px;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.1);color:#fff;border-radius:999px;padding:7px 16px 7px 8px;font:600 .86rem 'Segoe UI',Arial,sans-serif;cursor:pointer}
+.ma-btn.on{display:inline-flex}
+.ma-btn:hover{background:rgba(255,255,255,.18)}
+.ma-ico{width:30px;height:30px;border-radius:50%;background:#fff;color:#6B1A1A;display:grid;place-items:center;font-size:.8rem;flex:none}
+.ma-sub{font-weight:400;opacity:.8;font-size:.78rem}
+.ma-ansage{background:#E9A23B;border-color:#E9A23B;color:#2a1600}
+.ma-ansage:hover{background:#f2b456}
+.ma-ansage .ma-ico{color:#8a4b00}
+.ma-prog{flex:1;min-width:140px;height:4px;background:rgba(255,255,255,.2);border-radius:2px;display:none;cursor:pointer}
+.ma-prog.on{display:block}
+.ma-prog i{display:block;height:100%;width:0;background:#fff;border-radius:2px}
+.ma-text{flex-basis:100%;display:none;font-size:.85rem;opacity:.92;padding:2px 0 2px 4px}
+.ma-text.on{display:block}
+@media(max-width:700px){.mara-audio{padding:10px 16px}}
+</style>
+<div class="mara-audio" id="maraAudio">
+  <button class="ma-btn" id="maBrief" onclick="maraPlay('brief')"><span class="ma-ico" id="maBriefIco">▶</span><span>Wochen-Briefing anhören <span class="ma-sub" id="maBriefSub"></span></span></button>
+  <button class="ma-btn ma-ansage" id="maAns" onclick="maraPlay('ansage')"><span class="ma-ico" id="maAnsIco">📣</span><span id="maAnsLabel">Ansage</span></button>
+  <div class="ma-prog" id="maProg"><i id="maBar"></i></div>
+  <div class="ma-text" id="maAnsText"></div>
+  <audio id="maPlayer" preload="none"></audio>
+</div>
+<script>
+(function(){
+  var src={brief:null,ansage:null}, cur=null, P=document.getElementById('maPlayer');
+  function fmt(s){s=Math.round(s||0);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+  function show(){document.getElementById('maraAudio').classList.add('on');}
+  function get(u){return fetch(u+'?t='+Date.now(),{cache:'no-store'}).then(function(r){if(!r.ok)throw 0;return r.json();});}
+  get('version.json').then(function(v){ if(!v.audio) return; src.brief=v.audio;
+    document.getElementById('maBriefSub').textContent='· KW '+v.kw+(v.audio_sek?' · '+fmt(v.audio_sek):'');
+    document.getElementById('maBrief').classList.add('on'); show(); }).catch(function(){});
+  get('ansage.json').then(function(a){
+    var heute=new Date().toISOString().slice(0,10);
+    if(!a.mp3 || (a.gueltig_ab && heute<a.gueltig_ab) || (a.gueltig_bis && heute>a.gueltig_bis)) return;
+    src.ansage=a.mp3;
+    document.getElementById('maAnsLabel').innerHTML=(a.titel||'Ansage')+(a.von?' <span class="ma-sub">· '+a.von+'</span>':'');
+    if(a.text){var t=document.getElementById('maAnsText');t.textContent='📣 '+a.text;t.classList.add('on');}
+    document.getElementById('maAns').classList.add('on'); show(); }).catch(function(){});
+  function icons(){document.getElementById('maBriefIco').textContent=(cur==='brief'&&!P.paused)?'❚❚':'▶';
+    document.getElementById('maAnsIco').textContent=(cur==='ansage'&&!P.paused)?'❚❚':'📣';}
+  window.maraPlay=function(k){ if(!src[k]) return;
+    if(cur===k){ P.paused?P.play():P.pause(); }
+    else { cur=k; P.src=src[k]; P.play(); document.getElementById('maProg').classList.add('on'); }
+    icons(); };
+  P.addEventListener('play',icons); P.addEventListener('pause',icons); P.addEventListener('ended',icons);
+  P.addEventListener('timeupdate',function(){ if(P.duration) document.getElementById('maBar').style.width=(100*P.currentTime/P.duration)+'%'; });
+  document.getElementById('maProg').addEventListener('click',function(e){ if(!P.duration) return; var r=this.getBoundingClientRect(); P.currentTime=P.duration*(e.clientX-r.left)/r.width; });
+})();
+</script>
 <!-- ══ TABS ══ -->
 <div class="tab-bar">
   <button class="tab-btn active" onclick="switchTab('radar', this)">📊 Steuer-Radar</button>
