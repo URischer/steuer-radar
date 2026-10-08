@@ -61,12 +61,16 @@ AUDIO_BAR = r'''<!-- ══ AUDIO ══ -->
 .ma-prog i{display:block;height:100%;width:0;background:#fff;border-radius:2px}
 .ma-text{flex-basis:100%;display:none;font-size:.85rem;opacity:.92;padding:2px 0 2px 4px}
 .ma-text.on{display:block}
+.ma-pod{display:none;color:#fff;opacity:.85;font-size:.8rem;text-decoration:none;border-bottom:1px dotted rgba(255,255,255,.5);margin-left:auto}
+.ma-pod.on{display:inline}
+.ma-pod:hover{opacity:1}
 @media(max-width:700px){.mara-audio{padding:10px 16px}}
 </style>
 <div class="mara-audio" id="maraAudio">
   <button class="ma-btn" id="maBrief" onclick="maraPlay('brief')"><span class="ma-ico" id="maBriefIco">▶</span><span>Wochen-Briefing anhören <span class="ma-sub" id="maBriefSub"></span></span></button>
   <button class="ma-btn ma-ansage" id="maAns" onclick="maraPlay('ansage')"><span class="ma-ico" id="maAnsIco">📣</span><span id="maAnsLabel">Ansage</span></button>
   <div class="ma-prog" id="maProg"><i id="maBar"></i></div>
+  <a class="ma-pod" id="maPod" href="podcast.html" target="_blank" rel="noopener">📱 Als Podcast aufs Handy</a>
   <div class="ma-text" id="maAnsText"></div>
   <audio id="maPlayer" preload="none"></audio>
 </div>
@@ -78,7 +82,7 @@ AUDIO_BAR = r'''<!-- ══ AUDIO ══ -->
   function get(u){return fetch(u+'?t='+Date.now(),{cache:'no-store'}).then(function(r){if(!r.ok)throw 0;return r.json();});}
   get('version.json').then(function(v){ if(!v.audio) return; src.brief=v.audio;
     document.getElementById('maBriefSub').textContent='· KW '+v.kw+(v.audio_sek?' · '+fmt(v.audio_sek):'');
-    document.getElementById('maBrief').classList.add('on'); show(); }).catch(function(){});
+    document.getElementById('maBrief').classList.add('on'); document.getElementById('maPod').classList.add('on'); show(); }).catch(function(){});
   get('ansage.json').then(function(a){
     var heute=new Date().toISOString().slice(0,10);
     if(!a.mp3 || (a.gueltig_ab && heute<a.gueltig_ab) || (a.gueltig_bis && heute>a.gueltig_bis)) return;
@@ -97,6 +101,71 @@ AUDIO_BAR = r'''<!-- ══ AUDIO ══ -->
   document.getElementById('maProg').addEventListener('click',function(e){ if(!P.duration) return; var r=this.getBoundingClientRect(); P.currentTime=P.duration*(e.clientX-r.left)/r.width; });
 })();
 </script>'''
+
+
+
+# ---------------------------------------------------------------- Podcast-Feed
+def _clean(t):
+    t = re.sub(r"<[^>]+>", "", t or "")
+    t = re.sub(r"[\U0001F000-\U0001FFFF☀-➿️]", "", t)
+    return re.sub(r"\s+", " ", t).strip()
+
+
+def update_podcast(base, base_url, kanzlei_name, kw, year, datum, steuer, ki, audio_rel, audio_sek):
+    """Pflegt episodes.json und schreibt feed.xml (RSS 2.0 + iTunes-Tags)."""
+    from xml.sax.saxutils import escape as x
+    from email.utils import format_datetime
+    ep_path = os.path.join(base, "episodes.json")
+    eps = json.load(open(ep_path, encoding="utf-8")) if os.path.exists(ep_path) else []
+    order = {"dringend": 0, "relevant": 1, "info": 2}
+    top = sorted(steuer, key=lambda i: (order.get(i["prio"], 3), not i.get("update")))[:3]
+    themen = [_clean(i["name"]) for i in top] + ([_clean(ki[0]["name"])] if ki else [])
+    d = datetime.strptime(datum, "%d.%m.%Y").replace(hour=6, minute=30)
+    ep = {"kw": kw, "jahr": int(year), "datum": datum, "audio": audio_rel, "sek": audio_sek,
+          "bytes": os.path.getsize(os.path.join(base, audio_rel)),
+          "titel": f"KW {kw}/{year} – Steuer- und KI-Radar",
+          "beschreibung": "Die Themen: " + " · ".join(themen),
+          "pub": format_datetime(d.astimezone())}
+    eps = [e for e in eps if not (e["kw"] == kw and e["jahr"] == int(year))] + [ep]
+    eps.sort(key=lambda e: (e["jahr"], e["kw"]), reverse=True)
+    json.dump(eps, open(ep_path, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+
+    items = []
+    for e in eps[:52]:
+        url = base_url + e["audio"]
+        dur = e.get("sek") or 0
+        items.append(f"""  <item>
+    <title>{x(e['titel'])}</title>
+    <description>{x(e['beschreibung'])}</description>
+    <itunes:summary>{x(e['beschreibung'])}</itunes:summary>
+    <enclosure url="{x(url)}" length="{e['bytes']}" type="audio/mpeg"/>
+    <guid isPermaLink="false">{x(url)}</guid>
+    <pubDate>{e['pub']}</pubDate>
+    <itunes:duration>{dur // 60}:{dur % 60:02d}</itunes:duration>
+    <itunes:explicit>false</itunes:explicit>
+  </item>""")
+    titel = f"MARA Radar · {kanzlei_name}" if kanzlei_name else "MARA Radar"
+    rss = f"""<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+  <title>{x(titel)}</title>
+  <link>{x(base_url)}</link>
+  <atom:link href="{x(base_url)}feed.xml" rel="self" type="application/rss+xml"/>
+  <language>de-de</language>
+  <description>Das wöchentliche Audio-Briefing: Steuer-Neuigkeiten, Fristen und KI-Entwicklungen – jeden Montag neu. KI-gestützt erstellt; maßgeblich sind die verlinkten Quellen im Radar.</description>
+  <itunes:author>Uwe Rischer · MARA Radar</itunes:author>
+  <itunes:summary>Das wöchentliche Audio-Briefing zum MARA Radar.</itunes:summary>
+  <itunes:image href="{x(base_url)}cover.png"/>
+  <image><url>{x(base_url)}cover.png</url><title>{x(titel)}</title><link>{x(base_url)}</link></image>
+  <itunes:category text="Business"/>
+  <itunes:explicit>false</itunes:explicit>
+  <itunes:block>Yes</itunes:block>
+{chr(10).join(items)}
+</channel>
+</rss>
+"""
+    open(os.path.join(base, "feed.xml"), "w", encoding="utf-8").write(rss)
+    print(f"✅ Podcast-Feed aktualisiert: {len(eps)} Folge(n)")
 
 
 # ---------------------------------------------------------------- Prüfung Daten
@@ -257,6 +326,7 @@ def main():
     ap.add_argument("--steuer")
     ap.add_argument("--ki")
     ap.add_argument("--dump-previous")
+    ap.add_argument("--base-url", help="öffentliche Adresse der Kanzlei-Seite (Standard: GitHub Pages)")
     ap.add_argument("--audio", help="MP3 des Wochen-Briefings (optional, aus _radar/tts.py)")
     ap.add_argument("--dry-run", action="store_true", help="nur bauen und prüfen, nichts ablegen")
     a = ap.parse_args()
@@ -307,6 +377,9 @@ def main():
                    "audio": audio_rel, "audio_sek": audio_sek,
                    "erstellt": datetime.now().isoformat(timespec="minutes")},
                   f, ensure_ascii=False, indent=1)
+    if audio_rel:
+        base_url = a.base_url or f"https://urischer.github.io/steuer-radar/{a.kanzlei}/"
+        update_podcast(base, base_url, a.kanzlei_name, kw, year, datum, steuer["items"], ki["items"], audio_rel, audio_sek)
     print(f"✅ KW {kw}/{year} gebaut und geprüft: {a.kanzlei}/index.html + archiv/KW{kw:02d}-{year}.html")
     print(f"   Steuer-Items: {len(steuer['items'])} | KI-Items: {len(ki['items'])} | {len(html):,} Zeichen")
 

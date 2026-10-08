@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+  <title>MARA Radar · Intertreu GmbH SWTD Steuerberatungsgesellschaft</title>
+  <link>https://urischer.github.io/steuer-radar/intertreu/</link>
+  <atom:link href="https://urischer.github.io/steuer-radar/intertreu/feed.xml" rel="self" type="application/rss+xml"/>
+  <language>de-de</language>
+  <description>Das wöchentliche Audio-Briefing: Steuer-Neuigkeiten, Fristen und KI-Entwicklungen – jeden Montag neu. KI-gestützt erstellt; maßgeblich sind die verlinkten Quellen im Radar.</description>
+  <itunes:author>Uwe Rischer · MARA Radar</itunes:author>
+  <itunes:summary>Das wöchentliche Audio-Briefing zum MARA Radar.</itunes:summary>
+  <itunes:image href="https://urischer.github.io/steuer-radar/intertreu/cover.png"/>
+  <image><url>https://urischer.github.io/steuer-radar/intertreu/cover.png</url><title>MARA Radar · Intertreu GmbH SWTD Steuerberatungsgesellschaft</title><link>https://urischer.github.io/steuer-radar/intertreu/</link></image>
+  <itunes:category text="Business"/>
+  <itunes:explicit>false</itunes:explicit>
+  <itunes:block>Yes</itunes:block>
+  <item>
+    <title>KW 41/2026 – Steuer- und KI-Radar</title>
+    <description>Die Themen: USt-Voranmeldung und Lohnsteuer-Anmeldung September: fällig Montag, 12.10.2026 · Einkommensteuerreformgesetz 2027: erste Lesung im Bundestag am 08.10.2026 · Jahressteuergesetz 2026: Regierungsentwurf im Bundestag (Drs. 21/8283) · AI Act: OpenAI versieht ChatGPT-Texte in der EU mit unsichtbarem Wasserzeichen</description>
+    <itunes:summary>Die Themen: USt-Voranmeldung und Lohnsteuer-Anmeldung September: fällig Montag, 12.10.2026 · Einkommensteuerreformgesetz 2027: erste Lesung im Bundestag am 08.10.2026 · Jahressteuergesetz 2026: Regierungsentwurf im Bundestag (Drs. 21/8283) · AI Act: OpenAI versieht ChatGPT-Texte in der EU mit unsichtbarem Wasserzeichen</itunes:summary>
+    <enclosure url="https://urischer.github.io/steuer-radar/intertreu/audio/KW41-2026.mp3" length="551750" type="audio/mpeg"/>
+    <guid isPermaLink="false">https://urischer.github.io/steuer-radar/intertreu/audio/KW41-2026.mp3</guid>
+    <pubDate>Thu, 08 Oct 2026 06:30:00 +0200</pubDate>
+    <itunes:duration>1:09</itunes:duration>
+    <itunes:explicit>false</itunes:explicit>
+  </item>
+</channel>
+</rss>

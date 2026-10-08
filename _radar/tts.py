@@ -46,7 +46,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--text", required=True)
     ap.add_argument("--out", required=True)
-    ap.add_argument("--stimme", default="kerstin", choices=sorted(STIMMEN))
+    ap.add_argument("--stimme", default="thorsten", choices=sorted(STIMMEN))
     a = ap.parse_args()
 
     text = open(a.text, encoding="utf-8").read().strip()

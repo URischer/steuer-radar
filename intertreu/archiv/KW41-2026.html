@@ -369,12 +369,16 @@ table.m-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
 .ma-prog i{display:block;height:100%;width:0;background:#fff;border-radius:2px}
 .ma-text{flex-basis:100%;display:none;font-size:.85rem;opacity:.92;padding:2px 0 2px 4px}
 .ma-text.on{display:block}
+.ma-pod{display:none;color:#fff;opacity:.85;font-size:.8rem;text-decoration:none;border-bottom:1px dotted rgba(255,255,255,.5);margin-left:auto}
+.ma-pod.on{display:inline}
+.ma-pod:hover{opacity:1}
 @media(max-width:700px){.mara-audio{padding:10px 16px}}
 </style>
 <div class="mara-audio" id="maraAudio">
   <button class="ma-btn" id="maBrief" onclick="maraPlay('brief')"><span class="ma-ico" id="maBriefIco">▶</span><span>Wochen-Briefing anhören <span class="ma-sub" id="maBriefSub"></span></span></button>
   <button class="ma-btn ma-ansage" id="maAns" onclick="maraPlay('ansage')"><span class="ma-ico" id="maAnsIco">📣</span><span id="maAnsLabel">Ansage</span></button>
   <div class="ma-prog" id="maProg"><i id="maBar"></i></div>
+  <a class="ma-pod" id="maPod" href="podcast.html" target="_blank" rel="noopener">📱 Als Podcast aufs Handy</a>
   <div class="ma-text" id="maAnsText"></div>
   <audio id="maPlayer" preload="none"></audio>
 </div>
@@ -386,7 +390,7 @@ table.m-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
   function get(u){return fetch(u+'?t='+Date.now(),{cache:'no-store'}).then(function(r){if(!r.ok)throw 0;return r.json();});}
   get('version.json').then(function(v){ if(!v.audio) return; src.brief=v.audio;
     document.getElementById('maBriefSub').textContent='· KW '+v.kw+(v.audio_sek?' · '+fmt(v.audio_sek):'');
-    document.getElementById('maBrief').classList.add('on'); show(); }).catch(function(){});
+    document.getElementById('maBrief').classList.add('on'); document.getElementById('maPod').classList.add('on'); show(); }).catch(function(){});
   get('ansage.json').then(function(a){
     var heute=new Date().toISOString().slice(0,10);
     if(!a.mp3 || (a.gueltig_ab && heute<a.gueltig_ab) || (a.gueltig_bis && heute>a.gueltig_bis)) return;
