@@ -332,6 +332,109 @@ table.m-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
 .modal-cancel-btn { padding:10px 22px; background:white; color:#6B1A1A; border:2px solid #6B1A1A; border-radius:8px; font-size:0.88rem; font-weight:600; cursor:pointer; }
 .modal-cancel-btn:hover { background:#FDF0F0; }
 
+/* ══════════════════════════════════════════
+   ERWEITERUNGEN: Kopfzeile, Kurzfassung, Kalender, Archiv
+══════════════════════════════════════════ */
+.h-archiv, .h-print { font: inherit; font-size: 0.76rem; color: white; background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.35); border-radius: 16px; padding: 4px 12px; cursor: pointer; }
+.h-archiv option { color: #1a1a2e; background: white; }
+.h-archiv:hover, .h-print:hover { background: rgba(255,255,255,0.3); }
+
+.kurz-box { background: white; border-radius: 12px; padding: 18px 22px; margin-bottom: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); border-left: 4px solid #6B1A1A; }
+.kurz-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+.kurz-head h2 { font-size: 1rem; color: #6B1A1A; font-weight: 700; }
+.kurz-ics, .cal-btn { font: inherit; cursor: pointer; border-radius: 8px; transition: background 0.15s; }
+.kurz-ics { font-size: 0.8rem; font-weight: 600; background: #6B1A1A; color: white; border: none; padding: 7px 14px; }
+.kurz-ics:hover { background: #A83232; }
+.kurz-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.kurz-list li { display: flex; gap: 10px; align-items: baseline; font-size: 0.88rem; line-height: 1.45; color: #333; }
+.kurz-list a { color: #6B1A1A; font-weight: 600; text-decoration: none; border-bottom: 1px dotted currentColor; }
+.kurz-list a:hover { color: #A83232; }
+.kurz-ico { flex-shrink: 0; width: 1.3em; text-align: center; }
+.kurz-meta { margin-top: 12px; font-size: 0.75rem; color: #888; }
+
+.cal-btn { font-size: 0.7rem; background: #FFF8E8; border: 1px solid #F0D080; color: #7B5900; padding: 3px 8px; font-weight: 600; }
+.cal-btn:hover { background: #FBEFC9; }
+.update-badge { background: #FFF3CD; }
+.weiter-badge { font-size: 0.66rem; background: #F2F2F2; border: 1px solid #D9D9D9; color: #666; border-radius: 10px; padding: 2px 7px; font-weight: 600; }
+.item-card.is-weiter { opacity: 0.93; }
+.item-card.flash { animation: flash 1.6s ease; }
+@keyframes flash { 0%,100% { box-shadow: 0 2px 10px rgba(0,0,0,0.07); } 30% { box-shadow: 0 0 0 4px rgba(168,50,50,0.45); } }
+.print-src, .print-only { display: none; }
+
+/* ── Handy ── */
+@media (max-width: 620px) {
+  .header { align-items: flex-start; }
+  .header-right { justify-content: flex-start; }
+  .header-left h1 { font-size: 1.25rem; }
+  .tab-bar { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .tab-bar::-webkit-scrollbar { display: none; }
+  .tab-btn { padding: 12px 14px; font-size: 0.84rem; }
+  .container { padding: 18px 12px; }
+  .filter-bar { padding: 14px; }
+  .filter-label { min-width: 100%; }
+  .stat-card { min-width: 0; padding: 10px; }
+  .results-grid { grid-template-columns: 1fr; }
+  .item-card:hover { transform: none; }
+  .kurz-box { padding: 14px 16px; }
+  .kurz-ics { width: 100%; }
+}
+
+/* ── Druck / PDF ── */
+@media print {
+  @page { margin: 14mm 12mm; }
+  body { background: white; }
+  .header { background: none !important; color: #6B1A1A; box-shadow: none; padding: 0 0 8px; border-bottom: 2px solid #6B1A1A; }
+  .h-kw, .h-badge { background: none !important; border: 1px solid #ccc !important; color: #333; }
+  .h-archiv, .h-print, .tab-bar, .filter-bar, .result-count, .link-btn, .cal-btn, .kurz-ics,
+  .fristen-panel, #tab-email, #tab-redaktion, .modal-overlay, #noResults, #noResultsKI { display: none !important; }
+  #tab-radar, #tab-ki { display: block !important; }
+  #tab-ki { break-before: page; }
+  .print-only { display: block; }
+  .print-title { font-size: 1.1rem; color: #6B1A1A; margin: 6px 0 12px; }
+  .container { max-width: none; padding: 10px 0; }
+  .results-grid { display: block; }
+  .item-card { box-shadow: none; border: 1px solid #ddd; border-left-width: 4px; margin-bottom: 10px; break-inside: avoid; transform: none !important; opacity: 1; }
+  .item-card.hidden { display: flex; }
+  .print-src { display: block; font-size: 0.68rem; color: #666; word-break: break-all; }
+  .stat-card, .kurz-box { box-shadow: none; border: 1px solid #ddd; }
+  a { color: inherit; text-decoration: none; }
+}
+
+/* ── Dunkelmodus (folgt der Systemeinstellung) ── */
+@media (prefers-color-scheme: dark) {
+  :root { color-scheme: dark; }
+  body { background: #17141a; color: #e8e2e4; }
+  .header { background: linear-gradient(135deg, #4a1212 0%, #7a2424 100%); }
+  .tab-bar, .filter-bar, .stat-card, .item-card, .kurz-box, .fristen-panel, .module-card, .red-toolbar, .red-item-row, .modal-box, .modal-footer, .scoring-panel { background: #221d24; border-color: #3a2f36; }
+  .tab-bar { border-bottom-color: #3a2f36; }
+  .tab-btn { color: #a99ea3; }
+  .tab-btn.active { color: #f0a8a8; border-bottom-color: #e07070; }
+  .card-name, .kurz-head h2, .kurz-list a, .card-desc strong, .module-card h2, .red-toolbar h2, .red-lock h2, .email-name, .scoring-name, .result-count strong { color: #f0b4b4; }
+  a.card-name:hover, .kurz-list a:hover { color: #ffd0d0; }
+  .card-desc, .kurz-list li, .step-body p, .module-card .sub { color: #cfc6ca; }
+  .step-body h3, .frist-name, .red-item-name { color: #e8e2e4; }
+  .card-action { background: #33202a; color: #f3c9c9; border-left-color: #e07070; }
+  .filter-btn, .search-box, .form-input, .form-select, .form-textarea, .red-pw-input, .rt-kw input, .copy-btn, .modal-cancel-btn, .red-add-btn, .dl-btn.secondary, .form-chk-lbl { background: #2a242d; color: #e0d8dc; border-color: #4a3d45; }
+  .filter-btn.active { background: #8a2c2c; border-color: #8a2c2c; color: white; }
+  .tag.kat { background: #2f2329; border-color: #4a3640; color: #f0b4b4; }
+  .tag.mandant { background: #1d2a38; border-color: #2e4560; color: #a9c9ea; }
+  .tag.ebene, .weiter-badge { background: #2a2a2e; border-color: #444; color: #bbb; }
+  .tag.frist, .cal-btn { background: #3a3018; border-color: #6b5a26; color: #f0d78a; }
+  .update-badge { background: #3d3214; border-color: #a8851f; color: #f6d26b; }
+  .prio-badge.dringend { background: #3e1d1d; color: #ff9a8f; }
+  .prio-badge.relevant { background: #3d2a16; color: #ffb36b; }
+  .prio-badge.info { background: #172a3a; color: #8cc4ef; }
+  .stat-txt, .kurz-meta, .result-count, .filter-label, .frist-date, .email-meta, .red-item-meta { color: #9c9298; }
+  .disclaimer { background: #2c2617; border-color: #5b4b20; color: #e4cf8e; }
+  .dsgvo-box, .red-limits-box, .status-msg.info { background: #172633; border-color: #2c4a63; color: #a9cdea; }
+  .frist-row, .m-table td { border-bottom-color: #3a2f36; }
+  .m-table tr:nth-child(even), .upload-zone, .email-header, .scoring-row { background: #2a2229; }
+  .email-preview { background: #1c181e; border-color: #3a2f36; color: #ddd; }
+  .ampel-ok { background: #16301f; color: #8fdca9; border-color: #2c6040; }
+  .ampel-bald { background: #3a3018; color: #f0d78a; border-color: #6b5a26; }
+  .ampel-dringend2 { background: #3a2617; color: #ffb27a; border-color: #6b4426; }
+  .ampel-kritisch { background: #3e1d1d; color: #ff9a8f; border-color: #6e3030; }
+}
 </style>
 </head>
 <body>
@@ -345,17 +448,17 @@ table.m-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
   <div class="header-right">
     <div class="h-kw" id="headerKW">/* MARA_KW_HEADER */</div>
     <div class="h-badge" style="background:rgba(39,174,96,0.35);border-color:rgba(39,174,96,0.6);font-weight:700">🕐 Stand: /* MARA_STAND */</div>
-    <div class="h-badge">MARA Radar System</div>
-    <div class="h-badge">✉️ Email-Modul aktiv</div>
+    <select class="h-archiv" id="archivSelect" aria-label="Frühere Ausgaben" onchange="gotoAusgabe(this.value)" hidden></select>
+    <button class="h-print" type="button" onclick="window.print()" title="Drucken oder als PDF speichern">🖨️ Drucken / PDF</button>
   </div>
 </div>
 
 <!-- ══ TABS ══ -->
 <div class="tab-bar">
-  <button class="tab-btn active" onclick="switchTab('radar', this)">📊 Steuer-Radar</button>
-  <button class="tab-btn" onclick="switchTab('ki', this)">🤖 KI-Radar</button>
-  <button class="tab-btn" onclick="switchTab('email', this)">📧 Mandanten & Email-Versand</button>
-  <button class="tab-btn" onclick="switchTab('redaktion', this)">✏️ Redaktionsmodus</button>
+  <button class="tab-btn active" data-tab="radar" onclick="switchTab('radar', this)">📊 Steuer-Radar</button>
+  <button class="tab-btn" data-tab="ki" onclick="switchTab('ki', this)">🤖 KI-Radar</button>
+  <button class="tab-btn" data-tab="email" onclick="switchTab('email', this)">📧 Mandanten & Email-Versand</button>
+  <button class="tab-btn" data-tab="redaktion" onclick="switchTab('redaktion', this)">✏️ Redaktionsmodus</button>
 </div>
 
 <!-- ══════════════════════════════════
@@ -363,6 +466,17 @@ table.m-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
 ══════════════════════════════════ -->
 <div id="tab-radar" class="tab-panel active">
 <div class="container">
+
+  <h2 class="print-only print-title">📊 Steuer-Radar</h2>
+  <!-- DIE WOCHE IN 60 SEKUNDEN -->
+  <section class="kurz-box" id="kurzBox" aria-label="Die Woche in 60 Sekunden">
+    <div class="kurz-head">
+      <h2>⏱️ Die Woche in 60 Sekunden</h2>
+      <button class="kurz-ics" type="button" onclick="downloadICS()" id="icsAllBtn">📅 Fristen in Outlook übernehmen</button>
+    </div>
+    <ul class="kurz-list" id="kurzList"></ul>
+    <div class="kurz-meta" id="kurzMeta"></div>
+  </section>
 
   <div class="stats-row">
     <div class="stat-card d"><div class="stat-num" id="cntD">0</div><div class="stat-txt">🔴 Dringend</div></div>
@@ -377,6 +491,12 @@ table.m-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
       <button class="filter-btn" data-filter="prio" data-val="dringend" onclick="setFilter('prio','dringend',this)">🔴 Dringend</button>
       <button class="filter-btn" data-filter="prio" data-val="relevant" onclick="setFilter('prio','relevant',this)">🟡 Relevant</button>
       <button class="filter-btn" data-filter="prio" data-val="info" onclick="setFilter('prio','info',this)">🔵 Info</button>
+    </div>
+    <div class="filter-row">
+      <span class="filter-label">Status</span>
+      <button class="filter-btn active" data-filter="neu" data-val="alle" onclick="setFilter('neu','alle',this)">Alle</button>
+      <button class="filter-btn" data-filter="neu" data-val="neu" onclick="setFilter('neu','neu',this)">✨ Nur neue</button>
+      <button class="filter-btn" data-filter="neu" data-val="weiter" onclick="setFilter('neu','weiter',this)">↻ Weiterhin aktuell</button>
     </div>
     <div class="filter-row">
       <span class="filter-label">Mandant</span>
@@ -426,6 +546,7 @@ table.m-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
 ══════════════════════════════════ -->
 <div id="tab-ki" class="tab-panel">
 <div class="container">
+  <h2 class="print-only print-title">🤖 KI-Radar</h2>
 
   <div class="stats-row">
     <div class="stat-card d"><div class="stat-num" id="cntDki">0</div><div class="stat-txt">🔴 Dringend</div></div>
@@ -666,7 +787,7 @@ function switchTab(id, btn) {
 // ────────────────────────────────────
 // RADAR-LOGIK
 // ────────────────────────────────────
-let activeFilters = { prio:'alle', mandant:'alle', kat:'alle' };
+let activeFilters = { prio:'alle', mandant:'alle', kat:'alle', neu:'alle' };
 let searchTerm = '';
 
 // ── FRISTEN-AMPEL HILFSFUNKTIONEN ──
@@ -695,21 +816,23 @@ function buildCard(item) {
   var ai = getAmpelInfo(item.frist);
   var fristTag = item.frist ? '<span class="tag frist">📅 ' + item.frist + '</span>' : '';
   var ampelBadge = ai ? ('<span class="ampel-badge ampel-' + ai.cls + '">' + ai.icon + ' ' + ai.label + '</span>') : '';
-  var updateBadge = item.update ? '<span class="update-badge">⚡ Neu</span>' : '';
+  var updateBadge = item.update ? '<span class="update-badge">✨ Neu</span>' : '<span class="weiter-badge">↻ weiterhin aktuell</span>';
+  var calBtn = parseFrist(item.frist) ? '<button type="button" class="cal-btn" onclick="downloadICS(' + item.id + ')" title="Frist in den Kalender übernehmen">📅 Kalender</button>' : '';
   var mandantTags = item.mandanten.map(function(m){ return '<span class="tag mandant">' + m + '</span>'; }).join('');
   var actionHtml = item.handlung ? '<div class="card-action">' + item.handlung + '</div>' : '';
   var searchData = (item.name + ' ' + item.desc.replace(/<[^>]+>/g,'') + ' ' + (item.handlung||'') + ' ' + item.mandanten.join(' ')).toLowerCase().replace(/"/g,'&quot;');
-  return '<div class="item-card prio-' + item.prio + '" data-id="' + item.id + '" data-prio="' + item.prio + '" data-kat="' + item.kat + '" data-mandanten="' + item.mandanten.join(',') + '" data-search="' + searchData + '">'
+  return '<div class="item-card prio-' + item.prio + (item.update ? ' is-neu' : ' is-weiter') + '" data-id="' + item.id + '" data-neu="' + (item.update ? 'neu' : 'weiter') + '" data-prio="' + item.prio + '" data-kat="' + item.kat + '" data-mandanten="' + item.mandanten.join(',') + '" data-search="' + searchData + '">'
     + '<div class="card-top">'
     + '<a class="card-name" href="' + item.quelle.url + '" target="_blank" rel="noopener">' + item.name + '</a>'
     + '<span class="prio-badge ' + item.prio + '">' + prioLabel + '</span>'
     + '</div>'
     + '<div class="card-desc">' + item.desc + '</div>'
     + actionHtml
+    + '<div class="print-src">Quelle: ' + item.quelle.name + ' – ' + item.quelle.url + '</div>'
     + '<div class="card-footer">'
     + '<span class="tag ebene">' + item.ebene + '</span>'
     + '<span class="tag kat">' + item.kat + '</span>'
-    + fristTag + ampelBadge + mandantTags + updateBadge
+    + updateBadge + fristTag + ampelBadge + mandantTags + calBtn
     + '<a class="link-btn" href="' + item.quelle.url + '" target="_blank" rel="noopener">🔗 Quelle</a>'
     + '</div>'
     + '</div>';
@@ -725,8 +848,9 @@ function renderAll() {
 
 function applyFilters() {
   let v = 0;
-  document.querySelectorAll('.item-card').forEach(card => {
+  document.querySelectorAll('#cardsGrid .item-card').forEach(card => {
     const ok = (activeFilters.prio==='alle' || card.dataset.prio===activeFilters.prio)
+      && (activeFilters.neu==='alle' || card.dataset.neu===activeFilters.neu)
       && (activeFilters.kat==='alle' || card.dataset.kat===activeFilters.kat)
       && (activeFilters.mandant==='alle' || card.dataset.mandanten.split(',').includes(activeFilters.mandant))
       && (!searchTerm || card.dataset.search.includes(searchTerm.toLowerCase()));
@@ -755,19 +879,20 @@ let searchTermKI = '';
 function buildCardKI(item) {
   var prioLabelMap = {dringend:'🔴 Dringend', relevant:'🟡 Relevant', info:'🔵 Info'};
   var prioLabel = prioLabelMap[item.prio] || '🔵 Info';
-  var updateBadge = item.update ? '<span class="update-badge">⚡ Neu</span>' : '';
+  var updateBadge = item.update ? '<span class="update-badge">✨ Neu</span>' : '<span class="weiter-badge">↻ weiterhin aktuell</span>';
   var searchData = (item.name + ' ' + (item.desc||'').replace(/<[^>]+>/g,'') + ' ' + (item.einordnung||'')).toLowerCase().replace(/"/g,'&quot;');
   var einordnung = item.einordnung ? '<div class="card-action">' + item.einordnung + '</div>' : '';
-  return '<div class="item-card prio-' + item.prio + '" data-id="' + item.id + '" data-prioki="' + item.prio + '" data-katki="' + item.kat + '" data-searchki="' + searchData + '">'
+  return '<div class="item-card prio-' + item.prio + (item.update ? ' is-neu' : ' is-weiter') + '" data-id="' + item.id + '" data-prioki="' + item.prio + '" data-katki="' + item.kat + '" data-searchki="' + searchData + '">'
     + '<div class="card-top">'
     + '<a class="card-name" href="' + item.quelle.url + '" target="_blank" rel="noopener">' + item.name + '</a>'
     + '<span class="prio-badge ' + item.prio + '">' + prioLabel + '</span>'
     + '</div>'
     + '<div class="card-desc">' + item.desc + '</div>'
     + einordnung
+    + '<div class="print-src">Quelle: ' + item.quelle.name + ' – ' + item.quelle.url + '</div>'
     + '<div class="card-footer">'
-    + '<span class="tag kat">' + item.kat + '</span>'
     + updateBadge
+    + '<span class="tag kat">' + item.kat + '</span>'
     + '<a class="link-btn" href="' + item.quelle.url + '" target="_blank" rel="noopener">🔗 Quelle</a>'
     + '</div>'
     + '</div>';
@@ -1289,10 +1414,145 @@ function exportHTML() {
   setTimeout(function(){ URL.revokeObjectURL(a.href); }, 5000);
 }
 
+
+// ────────────────────────────────────
+// WOCHENDATEN (aus dem mara-data-Block)
+// ────────────────────────────────────
+function maraMeta() {
+  try { return JSON.parse(document.getElementById('mara-data').textContent) || {}; }
+  catch(e) { return {}; }
+}
+function plain(s) { return String(s||'').replace(/<[^>]+>/g,'').replace(/🚨\s*/g,'').replace(/\s+/g,' ').trim(); }
+function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ────────────────────────────────────
+// DIE WOCHE IN 60 SEKUNDEN
+// ────────────────────────────────────
+function renderKurz() {
+  var list = document.getElementById('kurzList');
+  if(!list) return;
+  var meta = maraMeta();
+  var rows = [];
+  if(Array.isArray(meta.kurzfassung) && meta.kurzfassung.length) {
+    rows = meta.kurzfassung.map(function(t){ return '<li>' + t + '</li>'; });
+  } else {
+    // 1) nächste Frist
+    var fr = items.map(function(i){ return {i:i, a:getAmpelInfo(i.frist)}; })
+      .filter(function(x){ return x.a && x.a.days >= 0; })
+      .sort(function(a,b){ return a.a.days - b.a.days; });
+    if(fr.length) {
+      var f = fr[0];
+      rows.push('<li><span class="kurz-ico">📅</span><span>Nächste Frist: <a href="#" onclick="return jumpTo(\'radar\',' + f.i.id + ')">' + escHtml(plain(f.i.name)) + '</a> <span class="ampel-badge ampel-' + f.a.cls + '">' + f.a.icon + ' ' + (f.a.days===0 ? 'heute' : 'in ' + f.a.days + ' Tagen') + '</span></span></li>');
+    }
+    // 2) wichtigste Steuer-Themen (dringend vor relevant, neu vor alt, ohne Fristen)
+    var rank = {dringend:0, relevant:1, info:2};
+    var top = items.filter(function(i){ return i.kat !== 'Frist'; }).slice()
+      .sort(function(a,b){ return (rank[a.prio]-rank[b.prio]) || ((b.update?1:0)-(a.update?1:0)) || (a.id-b.id); })
+      .slice(0,2);
+    top.forEach(function(i){
+      rows.push('<li><span class="kurz-ico">📌</span><span><a href="#" onclick="return jumpTo(\'radar\',' + i.id + ')">' + escHtml(plain(i.name)) + '</a></span></li>');
+    });
+    // 3) KI
+    var ki = itemsKI.slice().sort(function(a,b){ return (rank[a.prio]-rank[b.prio]) || ((b.update?1:0)-(a.update?1:0)) || (a.id-b.id); })[0];
+    if(ki) rows.push('<li><span class="kurz-ico">🤖</span><span>KI: <a href="#" onclick="return jumpTo(\'ki\',' + ki.id + ')">' + escHtml(plain(ki.name)) + '</a></span></li>');
+  }
+  list.innerHTML = rows.join('');
+  var nS = items.filter(function(i){ return i.update; }).length;
+  var nK = itemsKI.filter(function(i){ return i.update; }).length;
+  document.getElementById('kurzMeta').textContent =
+    items.length + ' Steuer-Themen (' + nS + ' neu) · ' + itemsKI.length + ' KI-Themen (' + nK + ' neu)' + (meta.datum ? ' · Stand ' + meta.datum : '');
+  var hasFrist = items.some(function(i){ var a = getAmpelInfo(i.frist); return a && a.days >= 0 && a.days <= 90; });
+  document.getElementById('icsAllBtn').hidden = !hasFrist;
+}
+
+function jumpTo(tab, id) {
+  var btn = document.querySelector('.tab-btn[data-tab="' + tab + '"]');
+  if(btn) switchTab(tab, btn);
+  var grid = document.getElementById(tab === 'ki' ? 'cardsGridKI' : 'cardsGrid');
+  var card = grid && grid.querySelector('.item-card[data-id="' + id + '"]');
+  if(card) {
+    card.classList.remove('hidden');
+    card.scrollIntoView({behavior:'smooth', block:'center'});
+    card.classList.add('flash');
+    setTimeout(function(){ card.classList.remove('flash'); }, 1800);
+  }
+  return false;
+}
+
+// ────────────────────────────────────
+// KALENDER-EXPORT (.ics für Outlook, Apple, Google)
+// ────────────────────────────────────
+function icsText(s) { return plain(s).replace(/\\/g,'\\\\').replace(/;/g,'\;').replace(/,/g,'\\,'); }
+function icsFold(line) {
+  var out = [], first = true;
+  while(line.length > 73) { out.push((first?'':' ') + line.slice(0,73)); line = line.slice(73); first = false; }
+  out.push((first?'':' ') + line);
+  return out.join('\r\n');
+}
+function ymd(d) { return d.getFullYear() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0'); }
+function downloadICS(onlyId) {
+  var meta = maraMeta();
+  var sel = items.filter(function(i){
+    var a = getAmpelInfo(i.frist);
+    if(!a) return false;
+    return onlyId ? i.id === onlyId : (a.days >= 0 && a.days <= 90);
+  });
+  if(!sel.length) { alert('Keine Fristen in den nächsten 90 Tagen in dieser Ausgabe.'); return; }
+  var stamp = new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d+Z$/,'Z');
+  var L = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//MARA Radar//Fristen//DE','CALSCALE:GREGORIAN','METHOD:PUBLISH'];
+  sel.forEach(function(i){
+    var d = parseFrist(i.frist), e = new Date(d.getTime()); e.setDate(e.getDate()+1);
+    var desc = (i.handlung ? 'Nächster Schritt: ' + plain(i.handlung) + ' · ' : '') + 'Quelle: ' + plain(i.quelle.name) + ' – ' + i.quelle.url;
+    L.push('BEGIN:VEVENT');
+    L.push('UID:mara-' + (meta.kw||'') + '-' + i.id + '-' + ymd(d) + '@steuer-radar');
+    L.push('DTSTAMP:' + stamp);
+    L.push('DTSTART;VALUE=DATE:' + ymd(d));
+    L.push('DTEND;VALUE=DATE:' + ymd(e));
+    L.push(icsFold('SUMMARY:Frist: ' + icsText(i.name)));
+    L.push(icsFold('DESCRIPTION:' + icsText(desc)));
+    L.push('URL:' + i.quelle.url);
+    L.push('TRANSP:TRANSPARENT');
+    L.push('BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:' + icsText('Frist morgen: ' + i.name).slice(0,60),'TRIGGER:-PT15H','END:VALARM');
+    L.push('END:VEVENT');
+  });
+  L.push('END:VCALENDAR');
+  var blob = new Blob([L.join('\r\n') + '\r\n'], {type:'text/calendar;charset=utf-8'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = onlyId ? ('Frist-' + ymd(parseFrist(sel[0].frist)) + '.ics') : ('Fristen-KW' + (meta.kw||'') + '.ics');
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(a.href); }, 5000);
+}
+
+// ────────────────────────────────────
+// ARCHIV-AUSWAHL (frühere Ausgaben)
+// ────────────────────────────────────
+function initArchiv() {
+  var sel = document.getElementById('archivSelect');
+  if(!sel || !window.fetch || location.protocol === 'file:') return;
+  var inArchiv = /\/archiv\/[^\/]*$/.test(location.pathname);
+  var base = inArchiv ? '' : 'archiv/';
+  var current = inArchiv ? location.pathname.split('/').pop() : '';
+  fetch(base + 'index.json?t=' + Date.now(), {cache:'no-store'})
+    .then(function(r){ if(!r.ok) throw 0; return r.json(); })
+    .then(function(list){
+      if(!Array.isArray(list) || !list.length) return;
+      var opts = ['<option value="' + (inArchiv ? '../' : './') + '"' + (inArchiv ? '' : ' selected') + '>📚 Aktuelle Ausgabe</option>'];
+      list.forEach(function(x){
+        var href = base + x.datei;
+        opts.push('<option value="' + escHtml(href) + '"' + (x.datei === current ? ' selected' : '') + '>KW ' + x.kw + '/' + x.jahr + (x.stand ? ' · ' + x.stand : '') + '</option>');
+      });
+      sel.innerHTML = opts.join('');
+      sel.hidden = false;
+    })
+    .catch(function(){});
+}
+function gotoAusgabe(href) { if(href) location.href = href; }
+
 // ────────────────────────────────────
 // INIT
 // ────────────────────────────────────
-document.addEventListener('DOMContentLoaded', function(){ renderAll(); renderKI(); renderFristenPanel(); });
+document.addEventListener('DOMContentLoaded', function(){ renderAll(); renderKI(); renderFristenPanel(); renderKurz(); initArchiv(); });
 </script>
 </body>
 </html>

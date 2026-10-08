@@ -143,8 +143,11 @@ def build(steuer, ki, kanzlei_name):
             f'<div class="subtitle">für {kanzlei_name} · Steuer-News · KI-News · Mandanten-Email</div>', 1)
 
     # Maschinenlesbare Kopie der Daten (für Dubletten-Abgleich nächste Woche)
-    payload = json.dumps({"kw": kw, "monat": monat, "datum": datum,
-                          "steuer": steuer["items"], "ki": ki["items"]},
+    meta = {"kw": kw, "monat": monat, "datum": datum,
+            "steuer": steuer["items"], "ki": ki["items"]}
+    if steuer.get("kurzfassung"):
+        meta["kurzfassung"] = steuer["kurzfassung"]
+    payload = json.dumps(meta,
                          ensure_ascii=False).replace("</", "<\\/")
     html = html.replace("</head>",
                         f'<meta name="mara-version" content="KW{kw}-{year}">\n'
@@ -168,6 +171,27 @@ def check_html(html):
             fail("JavaScript-Syntaxfehler:\n" + r.stderr[-800:])
     else:
         print("⚠️  node nicht verfügbar – JS-Syntaxprüfung übersprungen")
+
+
+def write_archiv_index(base):
+    """Liste aller Archivausgaben für das Auswahlmenü auf der Seite."""
+    adir = os.path.join(base, "archiv")
+    out = []
+    for fn in os.listdir(adir):
+        m = re.fullmatch(r"KW(\d{2})-(\d{4})\.html", fn)
+        if not m:
+            continue
+        stand = ""
+        try:
+            head = open(os.path.join(adir, fn), encoding="utf-8").read()
+            d = re.search(r'id="mara-data">\{"kw": \d+, "monat": "[^"]*", "datum": "(\d{2}\.\d{2}\.\d{4})"', head)
+            stand = d.group(1) if d else ""
+        except OSError:
+            pass
+        out.append({"datei": fn, "kw": int(m.group(1)), "jahr": int(m.group(2)), "stand": stand})
+    out.sort(key=lambda x: (x["jahr"], x["kw"]), reverse=True)
+    with open(os.path.join(adir, "index.json"), "w", encoding="utf-8") as f:
+        json.dump(out, f, ensure_ascii=False, indent=1)
 
 
 def dump_previous(kanzlei, out):
@@ -203,6 +227,9 @@ def main():
     steuer = json.load(open(a.steuer, encoding="utf-8"))
     ki = json.load(open(a.ki, encoding="utf-8"))
     problems = check_items(steuer, "Steuer", "steuer") + check_items(ki, "KI", "ki")
+    kurz = steuer.get("kurzfassung")
+    if kurz is not None and (not isinstance(kurz, list) or not all(isinstance(t, str) and t.strip() for t in kurz) or len(kurz) > 5):
+        problems.append("Steuer: 'kurzfassung' muss eine Liste mit 1–5 Texten sein (oder ganz fehlen)")
     if len(steuer.get("items", [])) < 8:
         problems.append(f"Steuer: nur {len(steuer.get('items', []))} Items (mind. 8 erwartet)")
     if len(ki.get("items", [])) < 3:
@@ -228,6 +255,7 @@ def main():
                    "steuer_items": len(steuer["items"]), "ki_items": len(ki["items"]),
                    "erstellt": datetime.now().isoformat(timespec="minutes")},
                   f, ensure_ascii=False, indent=1)
+    write_archiv_index(base)
     print(f"✅ KW {kw}/{year} gebaut und geprüft: {a.kanzlei}/index.html + archiv/KW{kw:02d}-{year}.html")
     print(f"   Steuer-Items: {len(steuer['items'])} | KI-Items: {len(ki['items'])} | {len(html):,} Zeichen")
 
