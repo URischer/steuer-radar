@@ -537,7 +537,7 @@ table.m-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
   <!-- SCHRITT 1: Vorlage -->
   <div class="module-card">
     <h2>📥 Schritt 1 — CSV-Vorlage herunterladen & befüllen</h2>
-    <div class="sub">Laden Sie die Vorlage herunter, öffnen Sie sie in Excel oder LibreOffice und tragen Sie Ihre Mandanten ein.</div>
+    <div class="sub">So funktioniert die Mandanten-Email in drei Schritten: <strong>①</strong> Vorlage herunterladen und in Excel öffnen. Die Zeilen darin sind nur <em>Beispiele</em> – ersetzen Sie sie durch Ihre eigenen Mandanten (eine Zeile pro Mandant). <strong>②</strong> Datei als CSV speichern und unten hochladen (Komma oder Semikolon – beides funktioniert). <strong>③</strong> Der Radar schreibt für jeden Mandanten automatisch eine fertige Email mit genau den Themen, die zu seinem Typ passen. Sie müssen nichts selbst formulieren.</div>
 
     <div class="step-row">
       <div class="step-num">1</div>
@@ -552,7 +552,7 @@ table.m-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
       <div class="step-num">2</div>
       <div class="step-body">
         <h3>Erlaubte Mandantentypen</h3>
-        <p>Tragen Sie in der Spalte <strong>Typ</strong> exakt einen der folgenden Werte ein — Groß-/Kleinschreibung beachten:</p>
+        <p>Tragen Sie in der Spalte <strong>Typ</strong> einen der folgenden Werte ein:</p>
         <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">
           <span class="tag mandant" style="font-size:0.82rem;padding:5px 12px">Freiberufler</span>
           <span class="tag mandant" style="font-size:0.82rem;padding:5px 12px">GmbH</span>
@@ -575,7 +575,7 @@ table.m-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
       <input type="file" accept=".csv" onchange="handleFileUpload(this)">
       <div class="uz-icon">📂</div>
       <div class="uz-text"><strong>CSV-Datei hier ablegen</strong> oder klicken zum Auswählen</div>
-      <div class="uz-text" style="margin-top:4px;font-size:0.76rem">Unterstützt: .csv (UTF-8, Komma-getrennt)</div>
+      <div class="uz-text" style="margin-top:4px;font-size:0.76rem">Unterstützt: .csv aus Excel oder LibreOffice (Komma- oder Semikolon-getrennt)</div>
     </div>
     <div id="uploadStatus"></div>
 
@@ -904,14 +904,32 @@ function downloadTemplate() {
 // ────────────────────────────────────
 let mandanten = [];
 
+const MANDANTEN_TYPEN = ["Freiberufler","GmbH","GbR","Arbeitnehmer","Immobilien","Gemeinnützig"];
+function normTyp(t) {
+  const k = (t||'').trim().toLowerCase().replace('ue','ü');
+  return MANDANTEN_TYPEN.find(v => v.toLowerCase() === k) || (t||'').trim();
+}
+function splitCSVLine(line, sep) {
+  const out = []; let cur = '', q = false;
+  for(let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if(c === '"') { if(q && line[i+1] === '"') { cur += '"'; i++; } else q = !q; }
+    else if(c === sep && !q) { out.push(cur); cur = ''; }
+    else cur += c;
+  }
+  out.push(cur);
+  return out.map(s => s.trim());
+}
 function parseCSV(text) {
-  const lines = text.replace(/\r/g,'').split('\n').filter(l => l.trim());
+  const lines = text.replace(/^\uFEFF/,'').replace(/\r/g,'').split('\n').filter(l => l.replace(/[;,\t\s]/g,''));
   if(lines.length < 2) return [];
+  const kopf = lines[0];
+  const sep = [';', ',', '\t'].sort((a,b) => kopf.split(b).length - kopf.split(a).length)[0];
   const result = [];
   for(let i = 1; i < lines.length; i++) {
-    const parts = lines[i].split(',').map(s => s.trim().replace(/^"|"$/g,''));
+    const parts = splitCSVLine(lines[i], sep);
     if(parts.length >= 3 && parts[1].includes('@')) {
-      result.push({ name: parts[0], email: parts[1], typ: parts[2] });
+      result.push({ name: parts[0], email: parts[1], typ: normTyp(parts[2]) });
     }
   }
   return result;
@@ -932,7 +950,7 @@ function handleFileUpload(input) {
       status.innerHTML = '<div class="status-msg error">⚠️ Keine gültigen Mandanten gefunden. Bitte CSV-Format prüfen (Name, Email, Typ).</div>';
       return;
     }
-    const validTypes = ["Freiberufler","GmbH","GbR","Arbeitnehmer","Immobilien","Gemeinnützig"];
+    const validTypes = MANDANTEN_TYPEN;
     const invalid = parsed.filter(m => !validTypes.includes(m.typ));
     if(invalid.length > 0) {
       status.innerHTML = `<div class="status-msg error">⚠️ ${invalid.length} Mandant(en) mit ungültigem Typ: ${invalid.map(m=>m.name+' ('+m.typ+')').join(', ')}. Bitte korrigieren.</div>`;
@@ -1029,7 +1047,7 @@ function generateEmails() {
     body += `\n──────────────────────────────────────\nBitte sprechen Sie uns bei Fragen jederzeit an. Wir stehen Ihnen gerne zur Verfügung.\n\nMit freundlichen Grüßen\n\n[Ihre Kanzlei-Signatur]\n\n──────────────────────────────────────\n⚠️ HINWEIS: Diese Information wurde mithilfe von KI-gestütztem MARA Steuer-Radar ${kw} erstellt. Sie ersetzt keine individuelle steuerrechtliche Beratung. Bitte sprechen Sie spezifische Fragen direkt mit Ihrem Steuerberater ab.\n──────────────────────────────────────`;
 
     const subject = `Steuer-Radar ${kw}: ${dringend.length > 0 ? dringend.length + ' dringende Themen + ' : ''}${matched.length} aktuelle Themen für Sie`;
-    const mailtoLink = `mailto:${m.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    mailDaten[idx] = { email: m.email, subject: subject, body: body };
 
     const card = document.createElement('div');
     card.className = 'email-card';
@@ -1053,7 +1071,11 @@ function generateEmails() {
         <div class="email-preview" id="ep-${idx}">${body}</div>
         <div class="action-row">
           <button class="copy-btn" id="cb-${idx}" onclick="copyEmail(${idx})">📋 Email kopieren</button>
-          <a class="mailto-btn" href="${mailtoLink}">📬 In Email-Client öffnen</a>
+          <button class="mailto-btn" onclick="openMailClient(${idx})">📬 Text kopieren &amp; Mailprogramm öffnen</button>
+          <button class="copy-btn" onclick="saveEml(${idx})">💾 Als Outlook-Entwurf speichern</button>
+        </div>
+        <div class="mail-hint" id="mh-${idx}" style="display:none;margin-top:10px;background:#EAFAF1;border:1px solid #27AE60;border-radius:7px;padding:10px 14px;font-size:0.8rem;color:#1E6B3A">
+          ✅ Der komplette Text liegt in der Zwischenablage. Im geöffneten Mailprogramm einfach ins Textfeld klicken und <strong>Strg + V</strong> drücken (Mac: <strong>⌘ + V</strong>).
         </div>
       </div>`;
     list.appendChild(card);
@@ -1076,9 +1098,48 @@ function collapseAll() {
   document.querySelectorAll('.email-card').forEach(c => c.classList.remove('open'));
 }
 
+const mailDaten = {};
+function inZwischenablage(text) {
+  if(navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);
+  return new Promise((ok, fehler) => {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy') ? ok() : fehler(); } catch(e) { fehler(e); }
+    document.body.removeChild(ta);
+  });
+}
+function openMailClient(idx) {
+  const d = mailDaten[idx];
+  inZwischenablage(d.body).then(() => {
+    document.getElementById('mh-'+idx).style.display = 'block';
+  }).catch(() => {
+    alert('Bitte den Text mit „📋 Email kopieren“ kopieren und im Mailprogramm einfügen.');
+  }).finally(() => {
+    window.location.href = 'mailto:' + d.email + '?subject=' + encodeURIComponent(d.subject);
+  });
+}
+function b64utf8(s) { return btoa(unescape(encodeURIComponent(s))); }
+function saveEml(idx) {
+  const d = mailDaten[idx];
+  const eml = [
+    'To: ' + d.email,
+    'Subject: =?UTF-8?B?' + b64utf8(d.subject) + '?=',
+    'X-Unsent: 1',
+    'MIME-Version: 1.0',
+    'Content-Type: text/plain; charset=UTF-8',
+    'Content-Transfer-Encoding: base64',
+    '',
+    b64utf8(d.body).replace(/(.{76})/g, '$1\r\n')
+  ].join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([eml], {type: 'message/rfc822'}));
+  a.download = 'Email-' + d.email.replace(/[^a-z0-9@.\-]/gi,'_') + '.eml';
+  a.click();
+}
 function copyEmail(idx) {
   const text = document.getElementById('ep-'+idx).textContent;
-  navigator.clipboard.writeText(text).then(() => {
+  inZwischenablage(text).then(() => {
     const btn = document.getElementById('cb-'+idx);
     btn.textContent = '✅ Kopiert!';
     btn.classList.add('copied');
@@ -1095,7 +1156,7 @@ function copyAllEmails() {
     }
   });
   if(all.length > 0) {
-    navigator.clipboard.writeText(all.join('')).then(() => alert(`✅ ${all.length} Emails in die Zwischenablage kopiert.`));
+    inZwischenablage(all.join('')).then(() => alert(`✅ ${all.length} Emails in die Zwischenablage kopiert.`));
   }
 }
 
